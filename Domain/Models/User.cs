@@ -1,15 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using SharedKernel;
 
 namespace Domain.Models;
-
-public enum UserRole
-{
-    Admin,
-    Doctor,
-    Patient
-}
 
 public class User
 {

@@ -1,22 +1,9 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using SharedKernel;
 
 namespace Domain.Models;
-
-public enum VisitStatus
-{
-    Scheduled,
-    Completed,
-    Cancelled
-}
-
-public enum VisitType
-{
-    InPerson,
-    Telemedicine,
-    HomeVisit
-}
 
 public class Visit
 {
