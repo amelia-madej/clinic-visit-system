@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastru
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Application\Application.csproj", "{D5228721-AEA1-4B4C-AE07-9C7608A0A151}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedKernel", "SharedKernel\SharedKernel.csproj", "{EEFD6CDA-86F0-4DC8-B556-5DED66554264}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{D5228721-AEA1-4B4C-AE07-9C7608A0A151}.Release|x64.Build.0 = Release|Any CPU
 		{D5228721-AEA1-4B4C-AE07-9C7608A0A151}.Release|x86.ActiveCfg = Release|Any CPU
 		{D5228721-AEA1-4B4C-AE07-9C7608A0A151}.Release|x86.Build.0 = Release|Any CPU
+		{EEFD6CDA-86F0-4DC8-B556-5DED66554264}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEFD6CDA-86F0-4DC8-B556-5DED66554264}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEFD6CDA-86F0-4DC8-B556-5DED66554264}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EEFD6CDA-86F0-4DC8-B556-5DED66554264}.Debug|x64.Build.0 = Debug|Any CPU
+		{EEFD6CDA-86F0-4DC8-B556-5DED66554264}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EEFD6CDA-86F0-4DC8-B556-5DED66554264}.Debug|x86.Build.0 = Debug|Any CPU
+		{EEFD6CDA-86F0-4DC8-B556-5DED66554264}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEFD6CDA-86F0-4DC8-B556-5DED66554264}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEFD6CDA-86F0-4DC8-B556-5DED66554264}.Release|x64.ActiveCfg = Release|Any CPU
+		{EEFD6CDA-86F0-4DC8-B556-5DED66554264}.Release|x64.Build.0 = Release|Any CPU
+		{EEFD6CDA-86F0-4DC8-B556-5DED66554264}.Release|x86.ActiveCfg = Release|Any CPU
+		{EEFD6CDA-86F0-4DC8-B556-5DED66554264}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
