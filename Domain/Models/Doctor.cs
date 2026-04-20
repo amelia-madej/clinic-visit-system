@@ -7,19 +7,11 @@ namespace Domain.Models;
 
 public class Doctor
 {
-    [Key]
     public int DoctorId { get; set; }
-
-    [ForeignKey(nameof(User))]
     public int UserId { get; set; }
-    public User? User { get; set; }
-
-    public string? Specialization { get; set; }
-
-    public string? Gender { get; set; }
-
-    public string? LicenseNumber { get; set; }
-
-    // Navigation
+    public User User { get; set; }
+    public string Specialization { get; set; }
+    public string Gender { get; set; }
+    public string LicenseNumber { get; set; }
     public ICollection<Visit>? Visits { get; set; }
 }
