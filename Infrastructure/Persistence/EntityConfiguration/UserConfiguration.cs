@@ -37,10 +37,15 @@ namespace Infrastructure.Persistence.EntityConfiguration
             //Relations
             builder.HasOne(u => u.Patient)
                    .WithOne(p => p.User)
-                   .HasForeignKey<Patient>(p => p.UserId);
+                   .HasForeignKey<Patient>(p => p.UserId)
+                   .IsRequired(false)
+                   .OnDelete(DeleteBehavior.Cascade);
+
             builder.HasOne(u => u.Doctor)
                    .WithOne(d => d.User)
-                   .HasForeignKey<Doctor>(d => d.UserId);
+                   .HasForeignKey<Doctor>(d => d.UserId)
+                   .IsRequired(false)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -31,10 +31,17 @@ namespace Infrastructure.Persistence.EntityConfiguration
             builder.HasOne(v => v.Patient)
                    .WithMany(p => p.Visits)
                    .HasForeignKey(v => v.PatientId)
+                   .IsRequired()
                    .OnDelete(DeleteBehavior.Cascade);
             builder.HasOne(v => v.Doctor)
                    .WithMany(d => d.Visits)
                    .HasForeignKey(v => v.DoctorId)
+                   .IsRequired()
+                   .OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(u => u.MedicalRecord)
+                   .WithOne(d => d.Visit)
+                   .HasForeignKey<MedicalRecord>(d => d.VisitId)
+                   .IsRequired()
                    .OnDelete(DeleteBehavior.Cascade);
         }
     }
