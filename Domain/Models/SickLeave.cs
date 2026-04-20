@@ -13,4 +13,6 @@ public class SickLeave
     public DateTime EndDate { get; set; }
 
     public string Reason { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

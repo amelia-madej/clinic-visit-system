@@ -8,10 +8,12 @@ public class MedicalRecord
 
     public int VisitId { get; set; }
     public Visit Visit { get; set; }
-
+    
     public string Interview { get; set; }
     public string Diagnosis { get; set; }
     public string Recommendations { get; set; }
 
     public List<Prescription> Prescriptions  { get; set; } = new();
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

@@ -13,5 +13,5 @@ public class Doctor
     public string Specialization { get; set; }
     public string Gender { get; set; }
     public string LicenseNumber { get; set; }
-    public ICollection<Visit>? Visits { get; set; }
+    public List<Visit>? Visits { get; set; }
 }
