@@ -6,7 +6,6 @@ namespace Application.DTOs
     public class DoctorListItemDto
     {
         public int DoctorId { get; set; }
-        public int UserId { get; set; }
         public string FirstName { get; set; } = default!;
         public string LastName { get; set; } = default!;
         public string Specialization { get; set; } = default!;

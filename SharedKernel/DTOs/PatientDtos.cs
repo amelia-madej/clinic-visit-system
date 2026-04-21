@@ -6,7 +6,6 @@ namespace Application.DTOs
     public class PatientListItemDto
     {
         public int PatientId { get; set; }
-        public int UserId { get; set; }
         public string FirstName { get; set; } = default!;
         public string LastName { get; set; } = default!;
         public DateTime DateOfBirth { get; set; }

@@ -26,4 +26,19 @@ namespace Application.DTOs
         public string Email { get; set; } = default!;
         public string PhoneNumber { get; set; } = default!;
     }
+
+    public class MedicationDto
+    {
+        public int MedicationId { get; set; }
+        public string Name { get; set; } = default!;
+        public string DosageForm { get; set; } = default!;
+        public string Form { get; set; } = default!;
+        public decimal StrengthValue { get; set; }
+        public string StrengthUnit { get; set; } = default!;
+        public string Manufacturer { get; set; } = default!;
+        public string? Packaging { get; set; }
+        public string ActiveIngredient { get; set; } = default!;
+    }
 }
+
+
