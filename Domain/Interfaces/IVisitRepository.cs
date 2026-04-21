@@ -1,0 +1,16 @@
+﻿using Domain.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Interfaces
+{
+    public interface IVisitRepository : IRepository<Visit>
+    {
+        List<Visit> GetVisitsByPatientId(int patientId);
+        List<Visit> GetVisitsByDoctorId(int doctorId);
+        List<Visit> GetVisitsByDateRange(DateTime startDate, DateTime endDate);
+    }
+}

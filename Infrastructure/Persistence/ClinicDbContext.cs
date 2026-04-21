@@ -6,14 +6,14 @@ namespace Infrastructure.Persistence
     public class ClinicDbContext : DbContext
     {
         public DbSet<User> Users { get; set; }
-        public DbSet<Patient> Patient { get; set; }
-        public DbSet<Doctor> Doctor { get; set; }
-        public DbSet<Visit> Visit { get; set; }
-        public DbSet<Prescription> Prescription { get; set; }
-        public DbSet<PrescriptionItem> PrescriptionItem { get; set; }
-        public DbSet<MedicalRecord> MedicalRecord { get; set; }
-        public DbSet<SickLeave> SickLeave { get; set; }
-        public DbSet<Medication> Medication { get; set; }
+        public DbSet<Patient> Patients { get; set; }
+        public DbSet<Doctor> Doctors { get; set; }
+        public DbSet<Visit> Visits { get; set; }
+        public DbSet<Prescription> Prescriptions { get; set; }
+        public DbSet<PrescriptionItem> PrescriptionItems { get; set; }
+        public DbSet<MedicalRecord> MedicalRecords { get; set; }
+        public DbSet<SickLeave> SickLeaves { get; set; }
+        public DbSet<Medication> Medications { get; set; }
         public ClinicDbContext(DbContextOptions<ClinicDbContext> options) : base(options)
         {
             // Database.EnsureCreated() sprawdza, czy baza danych istnieje. 

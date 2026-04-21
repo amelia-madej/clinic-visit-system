@@ -11,7 +11,7 @@ public class Patient
     public int PatientId { get; set; }
     public int UserId { get; set; }
     public User User { get; set; }
-    public string PESEL { get; set; }
+    public string Pesel { get; set; }
     public Gender Gender { get; set; }
     public DateTime DateOfBirth { get; set; }
     public string Address { get; set; }

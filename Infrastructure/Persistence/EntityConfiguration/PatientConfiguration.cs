@@ -17,7 +17,7 @@ namespace Infrastructure.Persistence.EntityConfiguration
             builder.HasKey(p => p.PatientId);
             builder.Property(p => p.PatientId)
                    .ValueGeneratedOnAdd();
-            builder.Property(p => p.PESEL)
+            builder.Property(p => p.Pesel)
                    .IsRequired()
                    .HasMaxLength(100);
             builder.Property(p => p.Address)
