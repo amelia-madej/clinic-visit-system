@@ -19,12 +19,12 @@ namespace Infrastructure.Repositories
             _dbContext = dbContext;
         }
 
-        public User GetByEmail(string email)
+        public User? GetUserByEmail(string email)
         {
             return _dbContext.Users.FirstOrDefault(u => u.Email == email);
         }
 
-        public User GetByPhoneNumber(string phoneNumber)
+        public User? GetUserByPhoneNumber(string phoneNumber)
         {
             return _dbContext.Users.FirstOrDefault(u => u.PhoneNumber == phoneNumber);
         }

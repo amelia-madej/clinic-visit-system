@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
@@ -19,7 +20,10 @@ namespace Infrastructure.Repositories
 
         public List<PrescriptionItem> GetPrescriptionItemsByPrescriptionId(int prescriptionId)
         {
-            return _dbContext.PrescriptionItems.Where(pi => pi.PrescriptionId == prescriptionId).ToList();
+            return _dbContext.PrescriptionItems
+                .Where(pi => pi.PrescriptionId == prescriptionId)
+                .Include(pi => pi.Medication)
+                .ToList();
         }
     }
 }

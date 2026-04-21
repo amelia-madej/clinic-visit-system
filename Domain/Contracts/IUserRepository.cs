@@ -11,7 +11,7 @@ namespace Domain.Interfaces
     public interface IUserRepository : IRepository<User>
     {
         List<User> GetUsersByRole(UserRole role);
-        User GetByEmail(string email);
-        User GetByPhoneNumber(string phoneNumber);
+        User? GetUserByEmail(string email);
+        User? GetUserByPhoneNumber(string phoneNumber);
     }
 }

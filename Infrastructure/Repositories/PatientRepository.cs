@@ -1,6 +1,7 @@
 ﻿using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,19 +18,19 @@ namespace Infrastructure.Repositories
             _dbContext = dbContext;
         }
 
-        public Patient? GetByEmail(string email)
+        public Patient? GetPatientByEmail(string email)
         {
-            return _dbContext.Patients.FirstOrDefault(p => p.User.Email == email);
+            return _dbContext.Patients.Include(p => p.User).FirstOrDefault(p => p.User.Email == email);
         }
 
-        public Patient? GetByPesel(string pesel)
+        public Patient? GetPatientByPesel(string pesel)
         {
-            return _dbContext.Patients.FirstOrDefault(p => p.Pesel == pesel);
+            return _dbContext.Patients.Include(p => p.User).FirstOrDefault(p => p.Pesel == pesel);
         }
 
-        public Patient? GetByPhoneNumber(string phoneNumber)
+        public Patient? GetPatientByPhoneNumber(string phoneNumber)
         {
-            return _dbContext.Patients.FirstOrDefault(p => p.User.PhoneNumber == phoneNumber);
+            return _dbContext.Patients.Include(p => p.User).FirstOrDefault(p => p.User.PhoneNumber == phoneNumber);
         }
     }
 }

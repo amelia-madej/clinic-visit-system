@@ -19,9 +19,7 @@ namespace Infrastructure.Repositories
 
         public List<Medication> GetMedicationsByActiveIngredient(List<string> activeIngredients)
         {
-            return _dbContext.Medications
-                .Where(m => activeIngredients.Contains(m.ActiveIngredient))
-                .ToList();
+            return _dbContext.Medications.Where(m => activeIngredients.Contains(m.ActiveIngredient)).ToList();
         }
 
         public List<Medication> GetMedicationsByDoctorId(int doctorId)
@@ -30,7 +28,8 @@ namespace Infrastructure.Repositories
             {
                 return new List<Medication>();
             }
-            return _dbContext.Medications.Where(m => m.PrescriptionItems.Any(p => p.Prescription.MedicalRecord.Visit.DoctorId == doctorId)).ToList();
+            return _dbContext.Medications
+                .Where(m => m.PrescriptionItems.Any(p => p.Prescription.MedicalRecord.Visit.DoctorId == doctorId)).ToList();
         }
 
         public List<Medication> GetMedicationsByForm(string form)

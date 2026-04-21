@@ -9,9 +9,9 @@ namespace Domain.Interfaces
 {
     public interface IPatientRepository : IRepository<Patient>
     {
-        Patient? GetByEmail(string email);
-        Patient? GetByPesel(string pesel);
-        Patient? GetByPhoneNumber(string phoneNumber);
+        Patient? GetPatientByEmail(string email);
+        Patient? GetPatientByPesel(string pesel);
+        Patient? GetPatientByPhoneNumber(string phoneNumber);
 
     }
 }
