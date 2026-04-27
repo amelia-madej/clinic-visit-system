@@ -18,8 +18,13 @@ namespace Application.Mapping
             CreateMap<Patient, PatientListItemDto>()
                 .ForMember(d => d.FirstName, opt => opt.MapFrom(s => s.User.FirstName))
                 .ForMember(d => d.LastName, opt => opt.MapFrom(s => s.User.LastName))
-                // .ForMember(d => d.UserId, opt => opt.MapFrom(s => s.UserId))
-                .ForMember(d => d.Age, opt => opt.MapFrom(s => System.DateTime.UtcNow.Year - s.DateOfBirth.Year));
+                .ForMember(d => d.DateOfBirth, opt => opt.MapFrom(s => s.DateOfBirth))
+                .ForMember(d => d.Age, opt => opt.MapFrom(s =>
+                    DateTime.UtcNow.Year - s.DateOfBirth.Year - (DateTime.UtcNow < s.DateOfBirth.AddYears(DateTime.UtcNow.Year - s.DateOfBirth.Year) ? 1 : 0)))
+                .ForMember(d => d.LastVisitDate, opt => opt.MapFrom(s =>
+                        s.Visits != null && s.Visits.Any()
+                        ? s.Visits.Max(v => v.VisitDateTime)
+                        : (DateTime?)null));
 
             CreateMap<Patient, PatientDetailsDto>()
                 .ForMember(d => d.User, opt => opt.MapFrom(s => s.User));
@@ -31,10 +36,12 @@ namespace Application.Mapping
                 .ForMember(d => d.PhoneNumber, opt => opt.MapFrom(s => s.PhoneNumber))
                 .ForMember(d => d.Password, opt => opt.MapFrom(s => s.Password));
 
+
             CreateMap<PatientCreateDto, Patient>()
-                // .ForMember(d => d.PESEL, opt => opt.MapFrom(s => s.PESEL))
+                .ForMember(d => d.Pesel, opt => opt.MapFrom(s => s.Pesel))
                 .ForMember(d => d.DateOfBirth, opt => opt.MapFrom(s => s.DateOfBirth))
-                .ForMember(d => d.Address, opt => opt.MapFrom(s => s.Address));
+                .ForMember(d => d.Address, opt => opt.MapFrom(s => s.Address))
+                .ForMember(d => d.Gender, opt => opt.MapFrom(s => s.Gender));
 
             // Doctor
             CreateMap<Doctor, DoctorListItemDto>()

@@ -17,20 +17,23 @@ namespace Infrastructure.Repositories
         {
             _dbContext = dbContext;
         }
-
+        public Patient? GetByIdWithDetails(int id)
+        {
+            return _dbContext.Patients.Include(p => p.User).Include(p => p.Visits).FirstOrDefault(p => p.User.UserId == id);
+        }
         public Patient? GetPatientByEmail(string email)
         {
-            return _dbContext.Patients.Include(p => p.User).FirstOrDefault(p => p.User.Email == email);
+            return _dbContext.Patients.Include(p => p.User).Include(p => p.Visits).FirstOrDefault(p => p.User.Email == email);
         }
 
         public Patient? GetPatientByPesel(string pesel)
         {
-            return _dbContext.Patients.Include(p => p.User).FirstOrDefault(p => p.Pesel == pesel);
+            return _dbContext.Patients.Include(p => p.User).Include(p => p.Visits).FirstOrDefault(p => p.Pesel == pesel);
         }
 
         public Patient? GetPatientByPhoneNumber(string phoneNumber)
         {
-            return _dbContext.Patients.Include(p => p.User).FirstOrDefault(p => p.User.PhoneNumber == phoneNumber);
+            return _dbContext.Patients.Include(p => p.User).Include(p => p.Visits).FirstOrDefault(p => p.User.PhoneNumber == phoneNumber);
         }
     }
 }

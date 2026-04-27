@@ -18,7 +18,7 @@ namespace SharedKernel.DTOs
         public int PatientId { get; set; }
         public UserDto User { get; set; } = default!;
         public string PESEL { get; set; } = default!;
-        public string Gender { get; set; } = default!;
+        public Gender Gender { get; set; } = default!;
         public DateTime DateOfBirth { get; set; }
         public string Address { get; set; } = default!;
         public List<VisitListItemDto> Visits { get; set; } = new();
@@ -34,10 +34,10 @@ namespace SharedKernel.DTOs
         public string Password { get; set; } = default!;
 
         // Patient specific
-        public string PESEL { get; set; } = default!;
+        public string Pesel { get; set; } = default!;
         public DateTime DateOfBirth { get; set; }
         public string Address { get; set; } = default!;
-        public string Gender { get; set; } = default!;
+        public Gender Gender { get; set; } = default!;
     }
 
     public class PatientUpdateDto : PatientCreateDto
