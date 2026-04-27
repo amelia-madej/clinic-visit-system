@@ -46,8 +46,8 @@ namespace Application.Mapping
             // Doctor
             CreateMap<Doctor, DoctorListItemDto>()
                 .ForMember(d => d.FirstName, opt => opt.MapFrom(s => s.User.FirstName))
-                .ForMember(d => d.LastName, opt => opt.MapFrom(s => s.User.LastName));
-                // .ForMember(d => d.UserId, opt => opt.MapFrom(s => s.UserId));
+                .ForMember(d => d.LastName, opt => opt.MapFrom(s => s.User.LastName))
+                .ForMember(d => d.Specialization, opt => opt.MapFrom(s => s.Specialization));
 
             CreateMap<DoctorCreateDto, User>()
                 .ForMember(d => d.FirstName, opt => opt.MapFrom(s => s.FirstName))
@@ -58,7 +58,8 @@ namespace Application.Mapping
 
             CreateMap<DoctorCreateDto, Doctor>()
                 .ForMember(d => d.Specialization, opt => opt.MapFrom(s => s.Specialization))
-                .ForMember(d => d.LicenseNumber, opt => opt.MapFrom(s => s.LicenseNumber));
+                .ForMember(d => d.LicenseNumber, opt => opt.MapFrom(s => s.LicenseNumber))
+                .ForMember(d => d.Gender, opt => opt.MapFrom(s => s.Gender));
 
             // Visit
             CreateMap<Visit, VisitListItemDto>()

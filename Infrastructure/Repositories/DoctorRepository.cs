@@ -27,5 +27,18 @@ namespace Infrastructure.Repositories
         {
             return _dbContext.Doctors.Include(d => d.User).Where(d => d.Specialization == specialization).ToList();
         }
+        public Doctor? GetDoctorByEmail(string email)
+        {
+            return _dbContext.Doctors.Include(p => p.User).Include(p => p.Visits).FirstOrDefault(p => p.User.Email == email);
+        }
+
+        public Doctor? GetDoctorByPhoneNumber(string phoneNumber)
+        {
+            return _dbContext.Doctors.Include(p => p.User).Include(p => p.Visits).FirstOrDefault(p => p.User.PhoneNumber == phoneNumber);
+        }
+        public Doctor? GetByIdWithDetails(int id)
+        {
+            return _dbContext.Doctors.Include(p => p.User).Include(p => p.Visits).FirstOrDefault(p => p.User.UserId == id);
+        }
     }
 }

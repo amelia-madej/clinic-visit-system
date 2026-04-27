@@ -11,5 +11,8 @@ namespace Domain.Contracts
     {
         List<Doctor> GetDoctorsBySpecialization(string specialization);
         List<Doctor> GetDoctorsByLastName(string lastName);
+        Doctor? GetDoctorByEmail(string email);
+        Doctor? GetDoctorByPhoneNumber(string phoneNumber);
+        Doctor? GetByIdWithDetails(int id);
     }
 }

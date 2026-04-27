@@ -17,7 +17,7 @@ namespace SharedKernel.DTOs
         public UserDto User { get; set; } = default!;
         public string Specialization { get; set; } = default!;
         public string LicenseNumber { get; set; } = default!;
-        public string Gender { get; set; } = default!;
+        public Gender Gender { get; set; } = default!;
         public List<VisitListItemDto> Visits { get; set; } = new();
     }
 
@@ -33,7 +33,7 @@ namespace SharedKernel.DTOs
         // Doctor specific
         public string Specialization { get; set; } = default!;
         public string LicenseNumber { get; set; } = default!;
-        public string Gender { get; set; } = default!;
+        public Gender Gender { get; set; } = default!;
     }
 
     public class DoctorUpdateDto : DoctorCreateDto

@@ -11,7 +11,7 @@ namespace Application.Validators
             RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
             RuleFor(x => x.Email).NotEmpty().EmailAddress();
             RuleFor(x => x.PhoneNumber).NotEmpty().MinimumLength(6).MaximumLength(20);
-            RuleFor(x => x.Password).NotEmpty().MinimumLength(6);
+            RuleFor(x => x.Password).NotEmpty().MinimumLength(10);
             RuleFor(x => x.Specialization).NotEmpty();
             RuleFor(x => x.LicenseNumber).NotEmpty();
             RuleFor(x => x.Gender).NotEmpty();
