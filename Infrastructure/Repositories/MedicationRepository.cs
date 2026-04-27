@@ -19,7 +19,7 @@ namespace Infrastructure.Repositories
 
         public List<Medication> GetMedicationsByActiveIngredient(List<string> activeIngredients)
         {
-            return _dbContext.Medications.Where(m => activeIngredients.Contains(m.ActiveIngredient)).ToList();
+            return _dbContext.Medications.Where(m => activeIngredients.Contains(m.ActiveIngredient)).ToList(); // może być niefektywne przy dużej liczbie leków i składników
         }
 
         public List<Medication> GetMedicationsByDoctorId(int doctorId)

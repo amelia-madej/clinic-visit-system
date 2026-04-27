@@ -83,6 +83,9 @@ namespace Application.Mapping
 
             CreateMap<PrescriptionCreateDto, Prescription>();
             CreateMap<PrescriptionItemCreateDto, PrescriptionItem>();
+
+            // Medication
+            CreateMap<Medication, MedicationDto>();
         }
     }
 }
