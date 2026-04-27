@@ -1,4 +1,4 @@
-﻿using Domain.Interfaces;
+﻿using Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

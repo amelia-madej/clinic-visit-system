@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Contracts
+namespace SharedKernel.DTOs
 {
-    public interface IClinicUnitOfWork : IDisposable
+    public class UserDtos
     {
-        void Commit();
-        void Dispose();
+
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Domain.Models;
 
-namespace Domain.Interfaces
+namespace Domain.Contracts
 {
     public interface IPrescriptionItemRepository : IRepository<PrescriptionItem>
     {

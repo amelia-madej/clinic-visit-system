@@ -1,4 +1,4 @@
-﻿using Domain.Interfaces;
+﻿using Domain.Contracts;
 using Domain.Models;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore.Migrations;

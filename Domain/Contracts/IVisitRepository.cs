@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Interfaces
+namespace Domain.Contracts
 {
     public interface IVisitRepository : IRepository<Visit>
     {
