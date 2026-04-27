@@ -1,7 +1,7 @@
 using AutoMapper;
 using Domain.Models;
 using Domain;
-using Application.DTOs;
+using SharedKernel.DTOs;
 
 namespace Application.Mapping
 {
@@ -10,8 +10,9 @@ namespace Application.Mapping
         public MappingProfile()
         {
             // User
-            CreateMap<User, UserDto>()
-                .ForMember(d => d.UserId, opt => opt.MapFrom(s => s.UserId));
+            CreateMap<User, UserDto>();
+            CreateMap<CreateUserDto, User>();
+            CreateMap<UpdateUserDto, User>();
 
             // Patient
             CreateMap<Patient, PatientListItemDto>()

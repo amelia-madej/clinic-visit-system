@@ -8,6 +8,16 @@ namespace Domain.Contracts
 {
     public interface IClinicUnitOfWork : IDisposable
     {
+        IUserRepository UserRepository { get; }
+        IPatientRepository PatientRepository { get; }
+        IDoctorRepository DoctorRepository { get; }
+        IMedicalRecordRepository MedicalRecordRepository { get; }
+        IMedicationRepository MedicationRepository { get; }
+        IPrescriptionItemRepository PrescriptionItemRepository { get; }
+        IPrescriptionRepository PrescriptionRepository { get; }
+        ISickLeaveRepository SickLeaveRepository { get; }
+        IVisitRepository VisitRepository { get; }
+
         void Commit();
         void Dispose();
     }

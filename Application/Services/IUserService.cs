@@ -1,5 +1,6 @@
 ﻿using Domain.Models;
 using SharedKernel;
+using SharedKernel.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,13 +11,14 @@ namespace Application.Services
 {
     public interface IUserService
     {
-        User? GetById(int id);
-        User? GetByEmail(string email);
-        User? GetByPhoneNumber(string phoneNumber);
-        List<User> GetAll();
-        List<User> GetByRole(UserRole role);
-        void Create(User user);
-        void Update(User user);
+        int Create(CreateUserDto dto);
+        void Update(UpdateUserDto dto);
         void Delete(int id);
+
+        List<UserDto> GetAll();
+        UserDto? GetById(int id);
+        UserDto? GetByEmail(string email);
+        UserDto? GetByPhoneNumber(string phoneNumber);
+        List<UserDto> GetByRole(UserRole role);
     }
 }

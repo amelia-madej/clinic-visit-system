@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Domain.Contracts;
 using Domain.Models;
+using FluentValidation;
 using SharedKernel;
+using SharedKernel.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,51 +14,114 @@ namespace Application.Services
 {
     public class UserService : IUserService
     {
-        private readonly IClinicUnitOfWork _clinicUnitOfWork;
+        private readonly IClinicUnitOfWork _uow;
         private readonly IMapper _mapper;
-        public UserService(IClinicUnitOfWork clinicUnitOfWork, IMapper mapper)
+        private readonly IValidator<CreateUserDto> _createValidator;
+        private readonly IValidator<UpdateUserDto> _updateValidator;
+
+        public UserService(
+            IClinicUnitOfWork clinicUnitOfWork,
+            IMapper mapper,
+            IValidator<CreateUserDto> createValidator,
+            IValidator<UpdateUserDto> updateValidator)
         {
-            _clinicUnitOfWork = clinicUnitOfWork;
+            _uow = clinicUnitOfWork;
             _mapper = mapper;
+            _createValidator = createValidator;
+            _updateValidator = updateValidator;
         }
-        public void Create(User user)
+
+        public int Create(CreateUserDto dto)
         {
-            throw new NotImplementedException();
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
+
+            _createValidator.ValidateAndThrow(dto);
+
+            var existingUser = _uow.UserRepository.GetUserByEmail(dto.Email);
+            if (existingUser != null)
+                throw new Exception("User with this email already exists");
+
+            var user = _mapper.Map<User>(dto);
+
+            _uow.UserRepository.Insert(user);
+            _uow.Commit();
+
+            return user.UserId;
         }
 
         public void Delete(int id)
         {
-            throw new NotImplementedException();
+            if(id<= 0)
+                throw new ArgumentException("Invalid user ID", nameof(id));
+
+            var user = _uow.UserRepository.Get(id);
+            if (user == null)
+                throw new Exception("User not found");
+
+            _uow.UserRepository.Delete(user);
+            _uow.Commit();
         }
 
-        public List<User> GetAll()
+        public List<UserDto> GetAll()
         {
-            throw new NotImplementedException();
+            var users = _uow.UserRepository.GetAll();
+            return _mapper.Map<List<UserDto>>(users);
         }
 
-        public User? GetByEmail(string email)
+        public UserDto? GetByEmail(string email)
         {
-            throw new NotImplementedException();
+            if(string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("Email cannot be null or empty", nameof(email));
+
+            var user = _uow.UserRepository.GetUserByEmail(email);
+            return user == null ? null : _mapper.Map<UserDto>(user);
         }
 
-        public User? GetById(int id)
+        public UserDto? GetById(int id)
         {
-            throw new NotImplementedException();
+            if(id<= 0) 
+                throw new ArgumentException("Invalid user ID", nameof(id));
+
+            var user = _uow.UserRepository.Get(id);
+            return user == null ? null : _mapper.Map<UserDto>(user);
         }
 
-        public User? GetByPhoneNumber(string phoneNumber)
+        public UserDto? GetByPhoneNumber(string phoneNumber)
         {
-            throw new NotImplementedException();
+            if(string.IsNullOrWhiteSpace(phoneNumber))
+                throw new ArgumentException("Phone number cannot be null or empty", nameof(phoneNumber));
+
+            var user = _uow.UserRepository.GetUserByPhoneNumber(phoneNumber);
+            return user == null ? null : _mapper.Map<UserDto>(user);
         }
 
-        public List<User> GetByRole(UserRole role)
+        public List<UserDto> GetByRole(UserRole role)
         {
-            throw new NotImplementedException();
+            if(!Enum.IsDefined(typeof(UserRole), role))
+                throw new ArgumentException("Invalid user role", nameof(role));
+
+            var users = _uow.UserRepository.GetUsersByRole(role);
+            return _mapper.Map<List<UserDto>>(users);
         }
 
-        public void Update(User user)
+        public void Update(UpdateUserDto dto)
         {
-            throw new NotImplementedException();
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
+
+            _updateValidator.ValidateAndThrow(dto);
+
+            var user = _uow.UserRepository.Get(dto.UserId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            user.FirstName = dto.FirstName;
+            user.LastName = dto.LastName;
+            user.PhoneNumber = dto.PhoneNumber;
+            user.Role = dto.Role;
+
+            _uow.Commit();
         }
     }
 }

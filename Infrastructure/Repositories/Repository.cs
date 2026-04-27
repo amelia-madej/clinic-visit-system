@@ -16,7 +16,7 @@ namespace Infrastructure.Repositories
         {
             _dbContext = dbContext;
         }
-        public TEntity Get(Guid id)
+        public TEntity Get(int id)
         {
             return _dbContext.Set<TEntity>().Find(id);
         }

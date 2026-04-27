@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Application.DTOs
+namespace SharedKernel.DTOs
 {
     public class ApiResponse<T>
     {
@@ -16,15 +16,6 @@ namespace Application.DTOs
         public int Total { get; set; }
         public int Page { get; set; }
         public int PageSize { get; set; }
-    }
-
-    public class UserDto
-    {
-        public int UserId { get; set; }
-        public string FirstName { get; set; } = default!;
-        public string LastName { get; set; } = default!;
-        public string Email { get; set; } = default!;
-        public string PhoneNumber { get; set; } = default!;
     }
 
     public class MedicationDto

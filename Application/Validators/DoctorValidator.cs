@@ -1,5 +1,5 @@
 using FluentValidation;
-using Application.DTOs;
+using SharedKernel.DTOs;
 
 namespace Application.Validators
 {

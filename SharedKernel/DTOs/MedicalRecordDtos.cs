@@ -1,7 +1,8 @@
+using SharedKernel.DTOs;
 using System;
 using System.Collections.Generic;
 
-namespace Application.DTOs
+namespace SharedKernel.DTOs
 {
     public class MedicalRecordDto
     {
