@@ -10,27 +10,27 @@ namespace Infrastructure.Persistence
     public class ClinicUnitOfWork : IClinicUnitOfWork
     {
         private readonly ClinicDbContext _dbContext;
-        public IPatientRepository Patients { get; }
-        public IDoctorRepository Doctors { get; }
-        public IVisitRepository Visits { get; }
-        public IMedicalRecordRepository MedicalRecords { get; }
-        public IPrescriptionRepository Prescriptions { get; }
-        public IMedicationRepository Medications { get; }
-        public IUserRepository User { get; }
-        public IPrescriptionItemRepository PrescriptionItems { get; }
-        public ISickLeaveRepository SickLeaves { get; }
+        public IPatientRepository PatientRepository { get; }
+        public IDoctorRepository DoctorRepository { get; }
+        public IVisitRepository VisitRepository { get; }
+        public IMedicalRecordRepository MedicalRecordRepository { get; }
+        public IPrescriptionRepository PrescriptionRepository { get; }
+        public IMedicationRepository MedicationRepository { get; }
+        public IUserRepository UserRepository { get; }
+        public IPrescriptionItemRepository PrescriptionItemRepository { get; }
+        public ISickLeaveRepository SickLeaveRepository { get; }
         public ClinicUnitOfWork(ClinicDbContext dbContext, IPatientRepository patients, IDoctorRepository doctors, IVisitRepository visits, IMedicalRecordRepository medicalRecords, IPrescriptionRepository prescriptions, IMedicationRepository medications, IUserRepository user, IPrescriptionItemRepository prescriptionItems, ISickLeaveRepository sickLeaves)
         {
             _dbContext = dbContext;
-            Patients = patients;
-            Doctors = doctors;
-            Visits = visits;
-            MedicalRecords = medicalRecords;
-            Prescriptions = prescriptions;
-            Medications = medications;
-            User = user;
-            PrescriptionItems = prescriptionItems;
-            SickLeaves = sickLeaves;
+            PatientRepository = patients;
+            DoctorRepository = doctors;
+            VisitRepository = visits;
+            MedicalRecordRepository = medicalRecords;
+            PrescriptionRepository = prescriptions;
+            MedicationRepository = medications;
+            UserRepository = user;
+            PrescriptionItemRepository = prescriptionItems;
+            SickLeaveRepository = sickLeaves;
         }
 
         public void Commit()
