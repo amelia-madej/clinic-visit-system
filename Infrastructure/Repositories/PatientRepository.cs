@@ -17,6 +17,10 @@ namespace Infrastructure.Repositories
         {
             _dbContext = dbContext;
         }
+        public List<Patient> GetAllWithDetails()
+        {
+            return _dbContext.Patients.Include(p => p.User).Include(p => p.Visits).ToList();
+        }
         public Patient? GetByIdWithDetails(int id)
         {
             return _dbContext.Patients.Include(p => p.User).Include(p => p.Visits).FirstOrDefault(p => p.User.UserId == id);

@@ -60,7 +60,7 @@ namespace Application.Services
 
         public List<PatientListItemDto> GetAll()
         {
-            var patients = _uow.PatientRepository.GetAll();
+            var patients = _uow.PatientRepository.GetAllWithDetails();
 
             return _mapper.Map<List<PatientListItemDto>>(patients);
         }
@@ -134,7 +134,11 @@ namespace Application.Services
             if (patient == null)
                 throw new Exception("Patient not found");
 
-            _uow.UserRepository.Delete(patient.User);
+            var user = _uow.UserRepository.Get(patient.UserId);
+            if(user == null)
+                throw new Exception("Associated user not found");
+
+            _uow.UserRepository.Delete(user);
             _uow.PatientRepository.Delete(patient);
 
             _uow.Commit();

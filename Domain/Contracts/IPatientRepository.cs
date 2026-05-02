@@ -13,5 +13,6 @@ namespace Domain.Contracts
         Patient? GetPatientByPesel(string pesel);
         Patient? GetPatientByPhoneNumber(string phoneNumber);
         Patient? GetByIdWithDetails(int id);
+        List<Patient> GetAllWithDetails();
     }
 }
