@@ -91,22 +91,22 @@ namespace Application.Services
             return doctor == null ? null : _mapper.Map<DoctorDetailsDto>(doctor);
         }
 
-        public DoctorDetailsDto? GetDoctorsByLastName(string lastName)
+        public List<DoctorListItemDto> GetDoctorsByLastName(string lastName)
         {
             if (string.IsNullOrWhiteSpace(lastName))
                 throw new ArgumentException("Last name cannot be null or empty", nameof(lastName));
 
             var doctor = _uow.DoctorRepository.GetDoctorsByLastName(lastName);
-            return doctor == null ? null : _mapper.Map<DoctorDetailsDto>(doctor);
+            return _mapper.Map<List<DoctorListItemDto>>(doctor);
         }
 
-        public DoctorDetailsDto? GetDoctorsBySpecialization(string specialization)
+        public List<DoctorListItemDto> GetDoctorsBySpecialization(string specialization)
         {
             if (string.IsNullOrWhiteSpace(specialization))
                 throw new ArgumentException("Specialization name cannot be null or empty", nameof(specialization));
 
             var doctor = _uow.DoctorRepository.GetDoctorsBySpecialization(specialization);
-            return doctor == null ? null : _mapper.Map<DoctorDetailsDto>(doctor);
+            return _mapper.Map<List<DoctorListItemDto>>(doctor);
         }
 
         public void Update(DoctorUpdateDto dto)

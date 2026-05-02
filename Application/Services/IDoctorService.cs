@@ -16,7 +16,7 @@ namespace Application.Services
         List<DoctorListItemDto> GetAll();
         DoctorDetailsDto? GetById(int id);
 
-        DoctorDetailsDto? GetDoctorsByLastName(string lastName);
-        DoctorDetailsDto? GetDoctorsBySpecialization(string specialization);
+        List<DoctorListItemDto> GetDoctorsByLastName(string lastName);
+        List<DoctorListItemDto> GetDoctorsBySpecialization(string specialization);
     }
 }

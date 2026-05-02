@@ -1,8 +1,10 @@
 using Application.Mapping;
 using Application.Services;
 using Application.Validators;
+using Domain.Contracts;
 using FluentValidation;
 using Infrastructure.Persistence;
+using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel.DTOs;
 
@@ -25,7 +27,7 @@ try
 
     // rejestracja kontekstu bazy w kontenerze IoC
     // var sqliteConnectionString = "Data Source=Kiosk.WebAPI.Logger.db";
-    var sqliteConnectionString = @"Data Source = C:\Users\Justyna\Desktop\Studia\Magisterka\Semestr 2\PAB\SaleKiosk_Order_Full\SaleKioskStudent.db";
+    var sqliteConnectionString = @"Data Source = ClinicVisitSystem.db";
     builder.Services.AddDbContext<ClinicDbContext>(options =>
         options.UseSqlite(sqliteConnectionString));
 
@@ -43,6 +45,17 @@ try
     builder.Services.AddScoped<IValidator<UpdateUserDto>, UpdateUserValidator>();
 
     // rejestracja klas
+    builder.Services.AddScoped<IClinicUnitOfWork, ClinicUnitOfWork>();
+    builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+    builder.Services.AddScoped<IMedicationRepository, MedicationRepository>();
+    builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+    builder.Services.AddScoped<IVisitRepository, VisitRepository>();
+    builder.Services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
+    builder.Services.AddScoped<IPrescriptionItemRepository, PrescriptionItemRepository>();
+    builder.Services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
+    builder.Services.AddScoped<ISickLeaveRepository, SickLeaveRepository>();
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    
     builder.Services.AddScoped<IDoctorService, DoctorService>();
     builder.Services.AddScoped<IMedicationService, MedicationService>();
     builder.Services.AddScoped<IPatientService, PatientService>();

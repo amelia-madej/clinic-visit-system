@@ -23,7 +23,7 @@ namespace Infrastructure.Persistence
             //      Database.EnsureDeleted();
             //      Database.EnsureCreated();
             // Powoduje to jednak zawsze usuwanie bazy przed rozpoczęciem dzialania programu.
-            Database.EnsureDeleted();
+            //Database.EnsureDeleted();
             Database.EnsureCreated();
         }
         protected override void OnModelCreating(ModelBuilder builder)
