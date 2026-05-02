@@ -60,6 +60,10 @@ namespace Application.Mapping
                 .ForMember(d => d.Specialization, opt => opt.MapFrom(s => s.Specialization))
                 .ForMember(d => d.LicenseNumber, opt => opt.MapFrom(s => s.LicenseNumber))
                 .ForMember(d => d.Gender, opt => opt.MapFrom(s => s.Gender));
+            
+            CreateMap<Doctor, DoctorDetailsDto>()
+                .ForMember(d => d.User, opt => opt.MapFrom(s => s.User))
+                .ForMember(d => d.Visits, opt => opt.MapFrom(s => s.Visits));
 
             // Visit
             CreateMap<Visit, VisitListItemDto>()

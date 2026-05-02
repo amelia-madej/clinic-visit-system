@@ -17,7 +17,10 @@ namespace Infrastructure.Repositories
         {
             _dbContext = dbContext;
         }
-
+        public List<Doctor> GetAllWithDetails()
+        {
+            return _dbContext.Doctors.Include(d => d.User).ToList();
+        }
         public List<Doctor> GetDoctorsByLastName(string lastName)
         {
             return _dbContext.Doctors.Include(d => d.User).Where(d => d.User.LastName == lastName).ToList();

@@ -68,7 +68,11 @@ namespace Application.Services
             if (doctor == null)
                 throw new Exception("Doctor not found");
 
-            _uow.UserRepository.Delete(doctor.User);
+            var user = _uow.UserRepository.Get(doctor.UserId);
+            if(user == null)
+                throw new Exception("Associated user not found");
+
+            _uow.UserRepository.Delete(user);
             _uow.DoctorRepository.Delete(doctor);
 
             _uow.Commit();
@@ -76,7 +80,7 @@ namespace Application.Services
 
         public List<DoctorListItemDto> GetAll()
         {
-            var doctors = _uow.DoctorRepository.GetAll();
+            var doctors = _uow.DoctorRepository.GetAllWithDetails();
 
             return _mapper.Map<List<DoctorListItemDto>>(doctors);
         }
