@@ -27,4 +27,18 @@ namespace Application.Validators
             RuleFor(x => x.SickLeaveId).GreaterThan(0).WithMessage("Sick leave ID must be greater than 0");
         }
     }
+
+    public class SickLeaveCompleteDtoValidator : AbstractValidator<SickLeaveCompleteDto>
+    {
+        public SickLeaveCompleteDtoValidator()
+        {
+            RuleFor(x => x.StartDate).NotEmpty().WithMessage("Start date is required");
+            RuleFor(x => x.EndDate).NotEmpty().WithMessage("End date is required");
+            RuleFor(x => x.EndDate)
+                .GreaterThanOrEqualTo(x => x.StartDate)
+                .WithMessage("End date must be greater than or equal to start date");
+            RuleFor(x => x.Reason).NotEmpty().WithMessage("Reason is required");
+            RuleFor(x => x.Reason).MinimumLength(3).WithMessage("Reason must be at least 3 characters long");
+        }
+    }
 }

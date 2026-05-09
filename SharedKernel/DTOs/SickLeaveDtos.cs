@@ -24,6 +24,13 @@ namespace SharedKernel.DTOs
         public string Reason { get; set; } = default!;
     }
 
+    public class SickLeaveCompleteDto
+    {
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Reason { get; set; } = default!;
+    }
+
     public class SickLeaveUpdateDto : SickLeaveCreateDto
     {
         public int SickLeaveId { get; set; }

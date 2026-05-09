@@ -23,7 +23,7 @@ namespace Infrastructure.Repositories
         }
         public Patient? GetByIdWithDetails(int id)
         {
-            return _dbContext.Patients.Include(p => p.User).Include(p => p.Visits).FirstOrDefault(p => p.User.UserId == id);
+            return _dbContext.Patients.Include(p => p.User).Include(p => p.Visits).FirstOrDefault(p => p.PatientId == id);
         }
         public Patient? GetPatientByEmail(string email)
         {

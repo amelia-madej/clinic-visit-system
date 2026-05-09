@@ -12,7 +12,7 @@ namespace Application.Services
 
         List<SickLeaveListItemDto> GetAll();
         SickLeaveDetailsDto? GetById(int id);
-        List<SickLeaveListItemDto> GetByMedicalRecordId(int medicalRecordId);
+        SickLeaveDetailsDto? GetByMedicalRecordId(int medicalRecordId);
         List<SickLeaveListItemDto> GetByDateRange(DateTime startDate, DateTime endDate);
     }
 }

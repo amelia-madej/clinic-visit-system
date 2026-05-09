@@ -27,6 +27,10 @@ namespace Infrastructure.Repositories
                     .ThenInclude(d => d.User)
                 .Include(v => v.MedicalRecord)
                     .ThenInclude(m => m.Prescriptions)
+                        .ThenInclude(p => p.Items)
+                            .ThenInclude(i => i.Medication)
+                .Include(v => v.MedicalRecord)
+                    .ThenInclude(m => m.SickLeave)
                 .FirstOrDefault(v => v.VisitId == id);
         }
 

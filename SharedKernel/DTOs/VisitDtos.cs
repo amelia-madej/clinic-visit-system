@@ -44,6 +44,7 @@ namespace SharedKernel.DTOs
         public string Interview { get; set; } = default!;
         public string Diagnosis { get; set; } = default!;
         public string Recommendations { get; set; } = default!;
+        public SickLeaveCompleteDto? SickLeave { get; set; }
         public List<PrescriptionCreateDto> Prescriptions { get; set; } = new();
     }
 }

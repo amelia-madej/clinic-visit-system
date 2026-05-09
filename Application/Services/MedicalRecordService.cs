@@ -58,7 +58,7 @@ namespace Application.Services
 
         public List<MedicalRecordDto> GetAll()
         {
-            var medicalRecords = _uow.MedicalRecordRepository.GetAll().ToList();
+            var medicalRecords = _uow.MedicalRecordRepository.GetAllMedicalRecords();
             return _mapper.Map<List<MedicalRecordDto>>(medicalRecords);
         }
 
@@ -67,7 +67,7 @@ namespace Application.Services
             if (id <= 0)
                 throw new ArgumentException("Invalid medical record ID", nameof(id));
 
-            var medicalRecord = _uow.MedicalRecordRepository.Get(id);
+            var medicalRecord = _uow.MedicalRecordRepository.GetMedicalRecordById(id);
             return medicalRecord == null ? null : _mapper.Map<MedicalRecordDto>(medicalRecord);
         }
 
@@ -76,8 +76,7 @@ namespace Application.Services
             if (visitId <= 0)
                 throw new ArgumentException("Invalid visit ID", nameof(visitId));
 
-            var medicalRecords = _uow.MedicalRecordRepository.Find(mr => mr.VisitId == visitId);
-            var medicalRecord = medicalRecords.FirstOrDefault();
+            var medicalRecord = _uow.MedicalRecordRepository.GetMedicalRecordByVisitId(visitId);
             return medicalRecord == null ? null : _mapper.Map<MedicalRecordDto>(medicalRecord);
         }
     }

@@ -45,9 +45,10 @@ try
     builder.Services.AddScoped<IValidator<VisitCompleteDto>, VisitCompleteDtoValidator>();
     builder.Services.AddScoped<IValidator<PrescriptionCreateDto>, PrescriptionCreateDtoValidator>();
     builder.Services.AddScoped<IValidator<PrescriptionItemCreateDto>, PrescriptionItemCreateDtoValidator>();
-    builder.Services.AddScoped<IValidator<MedicalRecordDto>, MedicalRecordCreateDtoValidator>();
+    builder.Services.AddScoped<IValidator<MedicalRecordDto>, MedicalRecordUpdateDtoValidator>();
     builder.Services.AddScoped<IValidator<SickLeaveCreateDto>, SickLeaveCreateDtoValidator>();
     builder.Services.AddScoped<IValidator<SickLeaveUpdateDto>, SickLeaveUpdateDtoValidator>();
+    builder.Services.AddScoped<IValidator<SickLeaveCompleteDto>, SickLeaveCompleteDtoValidator>();
     builder.Services.AddScoped<IValidator<CreateUserDto>, CreateUserValidator>();
     builder.Services.AddScoped<IValidator<UpdateUserDto>, UpdateUserValidator>();
 

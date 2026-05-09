@@ -30,6 +30,7 @@ namespace Application.Validators
         {
             RuleFor(x => x.Diagnosis).NotEmpty();
             RuleFor(x => x.Interview).NotEmpty();
+            RuleFor(x => x.SickLeave).SetValidator(new SickLeaveCompleteDtoValidator()!).When(x => x.SickLeave != null);
             RuleForEach(x => x.Prescriptions).SetValidator(new PrescriptionCreateDtoValidator());
         }
     }

@@ -68,17 +68,23 @@ namespace Application.Services
             if (visit == null)
                 throw new Exception("Visit not found");
 
+            if (!Enum.TryParse<VisitType>(dto.VisitType, out var visitType))
+                throw new Exception($"Invalid visit type: {dto.VisitType}");
+
             visit.PatientId = dto.PatientId;
             visit.DoctorId = dto.DoctorId;
             visit.VisitDateTime = dto.VisitDateTime;
-            visit.VisitType = Enum.Parse<VisitType>(dto.VisitType);
+            visit.VisitType = visitType;
 
             if (!string.IsNullOrEmpty(dto.Status))
             {
-                if (Enum.TryParse<VisitStatus>(dto.Status, out var status))
-                {
-                    visit.Status = status;
-                }
+                if (!Enum.TryParse<VisitStatus>(dto.Status, out var status))
+                    throw new Exception($"Invalid visit status: {dto.Status}");
+
+                if (status == VisitStatus.Completed)
+                    throw new Exception("Use POST /api/Visit/{id}/complete to complete a visit");
+
+                visit.Status = status;
             }
 
             _uow.Commit();
@@ -156,18 +162,45 @@ namespace Application.Services
             if (visit.Status == VisitStatus.Completed)
                 throw new Exception("Visit is already completed");
 
+            var medicationIds = dto.Prescriptions
+                .SelectMany(p => p.Items.Select(i => i.MedicationId))
+                .Distinct();
+
+            foreach (var medId in medicationIds)
+            {
+                if (_uow.MedicationRepository.Get(medId) == null)
+                    throw new Exception($"Medication with ID {medId} not found");
+            }
+
             var medicalRecord = new MedicalRecord
             {
                 VisitId = visitId,
                 Interview = dto.Interview,
                 Diagnosis = dto.Diagnosis,
                 Recommendations = dto.Recommendations,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                SickLeave = dto.SickLeave == null ? null : new SickLeave
+                {
+                    StartDate = dto.SickLeave.StartDate,
+                    EndDate = dto.SickLeave.EndDate,
+                    Reason = dto.SickLeave.Reason,
+                    CreatedAt = DateTime.UtcNow
+                },
+                Prescriptions = dto.Prescriptions.Select(p => new Prescription
+                {
+                    ValidUntil = p.ValidUntil ?? DateTime.UtcNow.AddMonths(1),
+                    CreatedAt = DateTime.UtcNow,
+                    Items = p.Items.Select(i => new PrescriptionItem
+                    {
+                        MedicationId = i.MedicationId,
+                        Dosage = i.Dosage,
+                        Quantity = i.Quantity,
+                        Instructions = i.Instructions
+                    }).ToList()
+                }).ToList()
             };
 
             _uow.MedicalRecordRepository.Insert(medicalRecord);
-            _uow.Commit();
-
             visit.Status = VisitStatus.Completed;
             _uow.Commit();
         }

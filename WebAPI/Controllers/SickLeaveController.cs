@@ -49,13 +49,17 @@ namespace WebAPI.Controllers
         // GET api/sickleave/medicalrecord/{medicalRecordId}
         [HttpGet("medicalrecord/{medicalRecordId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<IEnumerable<SickLeaveListItemDto>> GetByMedicalRecordId(int medicalRecordId)
+        public ActionResult<SickLeaveDetailsDto> GetByMedicalRecordId(int medicalRecordId)
         {
             try
             {
-                var sickLeaves = _sickLeaveService.GetByMedicalRecordId(medicalRecordId);
-                return Ok(sickLeaves);
+                var sickLeave = _sickLeaveService.GetByMedicalRecordId(medicalRecordId);
+                if (sickLeave == null)
+                    return NotFound("Sick leave not found for this medical record");
+
+                return Ok(sickLeave);
             }
             catch (Exception ex)
             {

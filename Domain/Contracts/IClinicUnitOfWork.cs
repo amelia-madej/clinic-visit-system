@@ -19,6 +19,5 @@ namespace Domain.Contracts
         IVisitRepository VisitRepository { get; }
 
         void Commit();
-        void Dispose();
     }
 }

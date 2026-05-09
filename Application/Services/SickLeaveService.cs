@@ -105,13 +105,13 @@ namespace Application.Services
             return sickLeave == null ? null : _mapper.Map<SickLeaveDetailsDto>(sickLeave);
         }
 
-        public List<SickLeaveListItemDto> GetByMedicalRecordId(int medicalRecordId)
+        public SickLeaveDetailsDto? GetByMedicalRecordId(int medicalRecordId)
         {
             if (medicalRecordId <= 0)
                 throw new ArgumentException("Invalid medical record ID", nameof(medicalRecordId));
 
-            var sickLeaves = _uow.SickLeaveRepository.Find(sl => sl.MedicalRecordId == medicalRecordId).ToList();
-            return _mapper.Map<List<SickLeaveListItemDto>>(sickLeaves);
+            var sickLeave = _uow.SickLeaveRepository.Find(sl => sl.MedicalRecordId == medicalRecordId).FirstOrDefault();
+            return sickLeave == null ? null : _mapper.Map<SickLeaveDetailsDto>(sickLeave);
         }
 
         public List<SickLeaveListItemDto> GetByDateRange(DateTime startDate, DateTime endDate)

@@ -9,6 +9,8 @@ namespace Domain.Contracts
 {
     public interface IPrescriptionItemRepository : IRepository<PrescriptionItem>
     {
+        PrescriptionItem? GetPrescriptionItemById(int id);
+        List<PrescriptionItem> GetAllPrescriptionItems();
         List<PrescriptionItem> GetPrescriptionItemsByPrescriptionId(int prescriptionId);
     }
 }

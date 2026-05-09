@@ -99,7 +99,7 @@ namespace Application.Services
 
         public List<PrescriptionItemDto> GetAll()
         {
-            var items = _uow.PrescriptionItemRepository.GetAll().ToList();
+            var items = _uow.PrescriptionItemRepository.GetAllPrescriptionItems();
             return _mapper.Map<List<PrescriptionItemDto>>(items);
         }
 
@@ -108,7 +108,7 @@ namespace Application.Services
             if (id <= 0)
                 throw new ArgumentException("Invalid prescription item ID", nameof(id));
 
-            var item = _uow.PrescriptionItemRepository.Get(id);
+            var item = _uow.PrescriptionItemRepository.GetPrescriptionItemById(id);
             return item == null ? null : _mapper.Map<PrescriptionItemDto>(item);
         }
 

@@ -41,7 +41,7 @@ namespace Infrastructure.Repositories
         }
         public Doctor? GetByIdWithDetails(int id)
         {
-            return _dbContext.Doctors.Include(p => p.User).Include(p => p.Visits).FirstOrDefault(p => p.User.UserId == id);
+            return _dbContext.Doctors.Include(p => p.User).Include(p => p.Visits).FirstOrDefault(p => p.DoctorId == id);
         }
     }
 }

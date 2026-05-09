@@ -18,6 +18,12 @@ namespace Infrastructure.Repositories
             _dbContext = dbContext;
         }
 
+        public Prescription? GetPrescriptionById(int id) =>
+            _dbContext.Prescriptions
+                .Include(p => p.Items)
+                    .ThenInclude(i => i.Medication)
+                .FirstOrDefault(p => p.PrescriptionId == id);
+
         public List<Prescription> GetPrescriptionByVisitId(int visitId)
         {
             return _dbContext.Prescriptions

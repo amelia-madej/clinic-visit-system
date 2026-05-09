@@ -45,6 +45,16 @@ public class DataSeeder
                 };
                 _dbContext.Patients.AddRange(patients);
                 _dbContext.SaveChanges();
+
+                // Temporary seed data - will be replaced by CSV import
+                var medications = new List<Medication>
+                {
+                    new Medication { Name = "Ibuprofen", DosageForm = "orally", Form = "tablet", StrengthValue = 400, StrengthUnit = "mg", Manufacturer = "Pfizer", Packaging = "box of 20 tablets", ActiveIngredient = "Ibuprofen" },
+                    new Medication { Name = "Amoxicillin", DosageForm = "orally", Form = "capsule", StrengthValue = 500, StrengthUnit = "mg", Manufacturer = "GSK", Packaging = "box of 21 capsules", ActiveIngredient = "Amoxicillin" },
+                    new Medication { Name = "Paracetamol", DosageForm = "orally", Form = "tablet", StrengthValue = 500, StrengthUnit = "mg", Manufacturer = "Bayer", Packaging = "box of 24 tablets", ActiveIngredient = "Paracetamol" }
+                };
+                _dbContext.Medications.AddRange(medications);
+                _dbContext.SaveChanges();
             }
         }
     }

@@ -39,39 +39,31 @@ namespace Application.Services
             if (medicalRecord == null)
                 throw new Exception("Medical record not found");
 
+            if (dto.Items != null)
+            {
+                foreach (var itemDto in dto.Items)
+                {
+                    if (_uow.MedicationRepository.Get(itemDto.MedicationId) == null)
+                        throw new Exception($"Medication with ID {itemDto.MedicationId} not found");
+                }
+            }
+
             var prescription = new Prescription
             {
                 MedicalRecordId = medicalRecordId,
                 ValidUntil = dto.ValidUntil ?? DateTime.UtcNow.AddYears(1),
                 CreatedAt = DateTime.UtcNow,
-                Items = new List<PrescriptionItem>()
+                Items = dto.Items?.Select(itemDto => new PrescriptionItem
+                {
+                    MedicationId = itemDto.MedicationId,
+                    Dosage = itemDto.Dosage,
+                    Quantity = itemDto.Quantity,
+                    Instructions = itemDto.Instructions
+                }).ToList() ?? new List<PrescriptionItem>()
             };
 
             _uow.PrescriptionRepository.Insert(prescription);
             _uow.Commit();
-
-            // Add items
-            if (dto.Items != null && dto.Items.Count > 0)
-            {
-                foreach (var itemDto in dto.Items)
-                {
-                    var medication = _uow.MedicationRepository.Get(itemDto.MedicationId);
-                    if (medication == null)
-                        throw new Exception($"Medication with ID {itemDto.MedicationId} not found");
-
-                    var item = new PrescriptionItem
-                    {
-                        PrescriptionId = prescription.PrescriptionId,
-                        MedicationId = itemDto.MedicationId,
-                        Dosage = itemDto.Dosage,
-                        Quantity = itemDto.Quantity,
-                        Instructions = itemDto.Instructions
-                    };
-
-                    _uow.PrescriptionItemRepository.Insert(item);
-                }
-                _uow.Commit();
-            }
 
             return prescription.PrescriptionId;
         }
@@ -119,7 +111,7 @@ namespace Application.Services
             if (id <= 0)
                 throw new ArgumentException("Invalid prescription ID", nameof(id));
 
-            var prescription = _uow.PrescriptionRepository.Get(id);
+            var prescription = _uow.PrescriptionRepository.GetPrescriptionById(id);
             return prescription == null ? null : _mapper.Map<PrescriptionDetailsDto>(prescription);
         }
 
