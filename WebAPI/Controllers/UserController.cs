@@ -11,10 +11,12 @@ namespace WebAPI.Controllers
     public class UserController : Controller
     {
         private readonly IUserService _userService;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, ILogger<UserController> logger)
         {
             _userService = userService;
+            _logger = logger;
         }
 
         // GET api/user
@@ -22,7 +24,9 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<UserDto>> GetAll()
         {
+            _logger.LogDebug("Rozpoczęto pobieranie listy wszystkich użytkowników");
             var users = _userService.GetAll();
+            _logger.LogDebug("Zakończono pobieranie listy wszystkich użytkowników");
             return Ok(users);
         }
 
@@ -35,15 +39,21 @@ namespace WebAPI.Controllers
         {
             try
             {
+                _logger.LogDebug($"Rozpoczęto pobieranie użytkownika o id {id}");
                 var user = _userService.GetById(id);
 
                 if (user == null)
+                {
+                    _logger.LogError($"User with id {id} not found");
                     return NotFound("User not found");
+                }
 
+                _logger.LogDebug($"Zakończono pobieranie użytkownika o id {id}");
                 return Ok(user);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error retrieving user with id {id}");
                 return BadRequest(ex.Message);
             }
         }

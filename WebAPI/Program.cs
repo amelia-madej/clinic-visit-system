@@ -6,11 +6,22 @@ using FluentValidation;
 using Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using NLog;
+using NLog.Web;
 using SharedKernel.DTOs;
+using WebAPI.Middleware;
+
+// Early init of NLog to allow startup and exception logging, before host is built
+var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+logger.Debug("init main");
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+
+    // NLog: Setup NLog for Dependency injection
+    builder.Logging.ClearProviders();
+    builder.Host.UseNLog();
 
     // Add services to the container.
 
@@ -61,14 +72,17 @@ try
     builder.Services.AddScoped<IPatientService, PatientService>();
     builder.Services.AddScoped<IUserService, UserService>();
 
-    // rejestruje w kontenerze zale¿noœci politykê CORS o nazwie SaleKioks,
-    // która zapewnia dostêp do API z dowolnego miejsca oraz przy pomocy dowolnej metody
+    // rejestruje w kontenerze zaleï¿½noï¿½ci politykï¿½ CORS o nazwie SaleKioks,
+    // ktï¿½ra zapewnia dostï¿½p do API z dowolnego miejsca oraz przy pomocy dowolnej metody
     builder.Services.AddCors(o => o.AddPolicy("ClinicVisit", builder =>
     {
         builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
     }));
 
     var app = builder.Build();
+
+    // Add Exception Middleware
+    app.UseMiddleware<ExceptionMiddleware>();
 
     // Configure the HTTP request pipeline.
     app.UseStaticFiles();
@@ -84,14 +98,21 @@ try
 
     app.MapControllers();
 
-    // wstawia politykê CORS obs³ugi do potoku ¿¹dania
+    // wstawia politykï¿½ CORS obsï¿½ugi do potoku ï¿½ï¿½dania
     app.UseCors("ClinicVisit");
 
     // seeding data here
 
     app.Run();
 }
-catch (Exception ex)
+catch (Exception exception)
 {
-
+    // NLog: catch setup errors
+    logger.Error(exception, "Stopped program because of exception");
+    throw;
+}
+finally
+{
+    // Ensure to flush and stop internal timers/threads before application-exit (Avoid segmentation fault on Linux)
+    NLog.LogManager.Shutdown();
 }

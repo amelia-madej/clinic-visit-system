@@ -9,10 +9,12 @@ namespace WebAPI.Controllers
     public class MedicationController : Controller
     {
         private readonly IMedicationService _medicationService;
+        private readonly ILogger<MedicationController> _logger;
 
-        public MedicationController(IMedicationService medicationService)
+        public MedicationController(IMedicationService medicationService, ILogger<MedicationController> logger)
         {
             _medicationService = medicationService;
+            _logger = logger;
         }
 
         // GET api/medication
@@ -20,7 +22,9 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<MedicationDto>> GetAll()
         {
+            _logger.LogDebug("Rozpoczęto pobieranie listy wszystkich leków");
             var medications = _medicationService.GetAll();
+            _logger.LogDebug("Zakończono pobieranie listy wszystkich leków");
             return Ok(medications);
         }
 
@@ -33,15 +37,21 @@ namespace WebAPI.Controllers
         {
             try
             {
+                _logger.LogDebug($"Rozpoczęto pobieranie leku o id {id}");
                 var medication = _medicationService.GetById(id);
 
                 if (medication == null)
+                {
+                    _logger.LogError($"Medication with id {id} not found");
                     return NotFound("Medication not found");
+                }
 
+                _logger.LogDebug($"Zakończono pobieranie leku o id {id}");
                 return Ok(medication);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error retrieving medication with id {id}");
                 return BadRequest(ex.Message);
             }
         }

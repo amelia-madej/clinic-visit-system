@@ -9,16 +9,21 @@ namespace WebAPI.Controllers
     public class PatientController : Controller
     {
         private readonly IPatientService _patientService;
-        public PatientController(IPatientService patientService)
+        private readonly ILogger<PatientController> _logger;
+        
+        public PatientController(IPatientService patientService, ILogger<PatientController> logger)
         {
             _patientService = patientService;
+            _logger = logger;
         }
         // GET api/patient
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<PatientListItemDto>> GetAll()
         {
+            _logger.LogDebug("Rozpoczęto pobieranie listy wszystkich pacjentów");
             var patients = _patientService.GetAll();
+            _logger.LogDebug("Zakończono pobieranie listy wszystkich pacjentów");
             return Ok(patients);
         }
 
@@ -29,11 +34,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<PatientDetailsDto> GetById(int id)
         {
+            _logger.LogDebug($"Rozpoczęto pobieranie pacjenta o id {id}");
             var patient = _patientService.GetById(id);
 
             if (patient == null)
+            {
+                _logger.LogError($"Patient with id {id} not found");
                 return NotFound("Patient not found");
+            }
 
+            _logger.LogDebug($"Zakończono pobieranie pacjenta o id {id}");
             return Ok(patient);
         }
 
