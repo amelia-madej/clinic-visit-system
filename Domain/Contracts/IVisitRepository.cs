@@ -12,5 +12,7 @@ namespace Domain.Contracts
         List<Visit> GetVisitsByPatientId(int patientId);
         List<Visit> GetVisitsByDoctorId(int doctorId);
         List<Visit> GetVisitsByDateRange(DateTime startDate, DateTime endDate);
+        Visit? GetVisitById(int id);
+        List<Visit> GetAllVisits();
     }
 }

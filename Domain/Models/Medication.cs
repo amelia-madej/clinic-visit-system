@@ -11,5 +11,5 @@ public class Medication
     public string Manufacturer { get; set; } // "Pfizer"
     public string Packaging { get; set; } // "box of 20 tablets"
     public string ActiveIngredient { get; set; } // "Paracetamol"
-    public List<PrescriptionItem>? PrescriptionItems { get; set; }
+    public List<PrescriptionItem> PrescriptionItems { get; set; }
 }

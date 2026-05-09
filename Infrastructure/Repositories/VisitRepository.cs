@@ -18,13 +18,41 @@ namespace Infrastructure.Repositories
             _dbContext = dbContext;
         }
 
+        public Visit? GetVisitById(int id)
+        {
+            return _dbContext.Visits
+                .Include(v => v.Patient)
+                    .ThenInclude(p => p.User)
+                .Include(v => v.Doctor)
+                    .ThenInclude(d => d.User)
+                .Include(v => v.MedicalRecord)
+                    .ThenInclude(m => m.Prescriptions)
+                .FirstOrDefault(v => v.VisitId == id);
+        }
+
+        public List<Visit> GetAllVisits()
+        {
+            return _dbContext.Visits
+                .Include(v => v.Patient)
+                    .ThenInclude(p => p.User)
+                .Include(v => v.Doctor)
+                    .ThenInclude(d => d.User)
+                .Include(v => v.MedicalRecord)
+                    .ThenInclude(m => m.Prescriptions)
+                        .ThenInclude(pi => pi.Items)
+                .ToList();
+        }
+
         public List<Visit> GetVisitsByDateRange(DateTime startDate, DateTime endDate)
         {
             return _dbContext.Visits
                 .Include(v => v.Patient)
+                    .ThenInclude(p => p.User)
                 .Include(v => v.Doctor)
+                    .ThenInclude(d => d.User)
                 .Include(v => v.MedicalRecord)
-                .ThenInclude(v => v.Prescriptions)
+                    .ThenInclude(v => v.Prescriptions)
+                        .ThenInclude(pi => pi.Items)
                 .Where(v => v.VisitDateTime >= startDate && v.VisitDateTime <= endDate).ToList();
         }
 
@@ -32,9 +60,11 @@ namespace Infrastructure.Repositories
         {
             return _dbContext.Visits
                 .Include(v => v.Patient)
+                    .ThenInclude(p => p.User)
                 .Include(v => v.Doctor)
+                    .ThenInclude(d => d.User)
                 .Include(v => v.MedicalRecord)
-                .ThenInclude(v => v.Prescriptions)
+                    .ThenInclude(v => v.Prescriptions)
                 .Where(v => v.DoctorId == doctorId).ToList();
         }
 
@@ -42,9 +72,11 @@ namespace Infrastructure.Repositories
         {
             return _dbContext.Visits
                 .Include(v => v.Patient)
+                    .ThenInclude(p => p.User)
                 .Include(v => v.Doctor)
+                    .ThenInclude(d => d.User)
                 .Include(v => v.MedicalRecord)
-                .ThenInclude(v => v.Prescriptions)
+                    .ThenInclude(v => v.Prescriptions)
                 .Where(v => v.PatientId == patientId).ToList();
         }
     }

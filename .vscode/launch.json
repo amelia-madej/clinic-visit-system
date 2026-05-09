@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "C#: WebAPI Debug",
+            "type": "dotnet",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "projectPath": "${workspaceFolder}/WebAPI/WebAPI.csproj"
+        },
+        {
+            "name": "Launch Blazor Server",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/BlazorServer/BlazorServer.csproj"
+        }
+    ]
+}

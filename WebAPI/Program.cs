@@ -1,12 +1,16 @@
+using SharedKernel;
+using System.Linq;
 using Application.Mapping;
 using Application.Services;
 using Application.Validators;
 using Domain.Contracts;
+using Domain.Models;
 using FluentValidation;
 using Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel.DTOs;
+using Infrastructure;
 
 try
 {
@@ -41,6 +45,9 @@ try
     builder.Services.AddScoped<IValidator<VisitCompleteDto>, VisitCompleteDtoValidator>();
     builder.Services.AddScoped<IValidator<PrescriptionCreateDto>, PrescriptionCreateDtoValidator>();
     builder.Services.AddScoped<IValidator<PrescriptionItemCreateDto>, PrescriptionItemCreateDtoValidator>();
+    builder.Services.AddScoped<IValidator<MedicalRecordDto>, MedicalRecordCreateDtoValidator>();
+    builder.Services.AddScoped<IValidator<SickLeaveCreateDto>, SickLeaveCreateDtoValidator>();
+    builder.Services.AddScoped<IValidator<SickLeaveUpdateDto>, SickLeaveUpdateDtoValidator>();
     builder.Services.AddScoped<IValidator<CreateUserDto>, CreateUserValidator>();
     builder.Services.AddScoped<IValidator<UpdateUserDto>, UpdateUserValidator>();
 
@@ -60,9 +67,16 @@ try
     builder.Services.AddScoped<IMedicationService, MedicationService>();
     builder.Services.AddScoped<IPatientService, PatientService>();
     builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<IVisitService, VisitService>();
+    builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
+    builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();
+    builder.Services.AddScoped<IPrescriptionItemService, PrescriptionItemService>();
+    builder.Services.AddScoped<ISickLeaveService, SickLeaveService>();
 
-    // rejestruje w kontenerze zale¿noœci politykê CORS o nazwie SaleKioks,
-    // która zapewnia dostêp do API z dowolnego miejsca oraz przy pomocy dowolnej metody
+    builder.Services.AddScoped<DataSeeder>();
+
+    // rejestruje w kontenerze zaleï¿½noï¿½ci politykï¿½ CORS o nazwie SaleKioks,
+    // ktï¿½ra zapewnia dostï¿½p do API z dowolnego miejsca oraz przy pomocy dowolnej metody
     builder.Services.AddCors(o => o.AddPolicy("ClinicVisit", builder =>
     {
         builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
@@ -84,14 +98,18 @@ try
 
     app.MapControllers();
 
-    // wstawia politykê CORS obs³ugi do potoku ¿¹dania
+    // wstawia politykï¿½ CORS obsï¿½ugi do potoku ï¿½ï¿½dania
     app.UseCors("ClinicVisit");
 
-    // seeding data here
+    using (var scope = app.Services.CreateScope())
+    {
+        var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
+        dataSeeder.Seed();
+    }
 
     app.Run();
 }
-catch (Exception ex)
+catch (Exception)
 {
 
 }

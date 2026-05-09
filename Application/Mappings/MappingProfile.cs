@@ -88,6 +88,12 @@ namespace Application.Mapping
             CreateMap<PrescriptionCreateDto, Prescription>();
             CreateMap<PrescriptionItemCreateDto, PrescriptionItem>();
 
+            // SickLeave
+            CreateMap<SickLeave, SickLeaveListItemDto>();
+            CreateMap<SickLeave, SickLeaveDetailsDto>();
+            CreateMap<SickLeaveCreateDto, SickLeave>();
+            CreateMap<SickLeaveUpdateDto, SickLeave>();
+
             // Medication
             CreateMap<Medication, MedicationDto>();
         }
