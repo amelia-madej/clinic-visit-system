@@ -75,8 +75,10 @@ try
     builder.Services.AddScoped<ISickLeaveRepository, SickLeaveRepository>();
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     
+    builder.Services.AddHttpClient();
     builder.Services.AddScoped<IDoctorService, DoctorService>();
     builder.Services.AddScoped<IMedicationService, MedicationService>();
+    builder.Services.AddScoped<IMedicationImportService, MedicationImportService>();
     builder.Services.AddScoped<IPatientService, PatientService>();
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IVisitService, VisitService>();
@@ -120,6 +122,9 @@ try
     {
         var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
         dataSeeder.Seed();
+
+        var medicationImport = scope.ServiceProvider.GetRequiredService<IMedicationImportService>();
+        medicationImport.ImportAsync().GetAwaiter().GetResult();
     }
 
     app.Run();

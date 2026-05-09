@@ -109,8 +109,8 @@ namespace WebAPI.Controllers
             }
         }
 
-        // PUT api/patient
-        [HttpPut]
+        // PUT api/patient/{id}
+        [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

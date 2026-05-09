@@ -9,11 +9,13 @@ namespace WebAPI.Controllers
     public class MedicationController : Controller
     {
         private readonly IMedicationService _medicationService;
+        private readonly IMedicationImportService _medicationImportService;
         private readonly ILogger<MedicationController> _logger;
 
-        public MedicationController(IMedicationService medicationService, ILogger<MedicationController> logger)
+        public MedicationController(IMedicationService medicationService, IMedicationImportService medicationImportService, ILogger<MedicationController> logger)
         {
             _medicationService = medicationService;
+            _medicationImportService = medicationImportService;
             _logger = logger;
         }
 
@@ -206,6 +208,24 @@ namespace WebAPI.Controllers
             }
             catch (Exception ex)
             {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // POST api/medication/import
+        [HttpPost("import")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> Import()
+        {
+            try
+            {
+                var count = await _medicationImportService.ImportAsync();
+                return Ok(new { imported = count });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error importing medications");
                 return BadRequest(ex.Message);
             }
         }

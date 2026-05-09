@@ -98,25 +98,5 @@ namespace WebAPI.Controllers
             }
         }
 
-        // DELETE api/medicalrecord/{id}
-        [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult Delete(int id)
-        {
-            _logger.LogDebug($"Rozpoczęto usuwanie rekordu medycznego o id {id}");
-            try
-            {
-                _medicalRecordService.Delete(id);
-                _logger.LogDebug($"Zakończono usuwanie rekordu medycznego o id {id}");
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Błąd podczas usuwania rekordu medycznego: {ex.Message}");
-                return BadRequest(ex.Message);
-            }
-        }
     }
 }
