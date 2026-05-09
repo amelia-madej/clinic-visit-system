@@ -9,5 +9,8 @@ namespace Domain.Contracts
 {
     public interface IMedicalRecordRepository : IRepository<MedicalRecord>
     {
+        MedicalRecord? GetMedicalRecordById(int id);
+        List<MedicalRecord> GetAllMedicalRecords();
+        MedicalRecord? GetMedicalRecordByVisitId(int visitId);
     }
 }

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Domain.Contracts;
+﻿using Domain.Contracts;
 using Domain.Models;
 using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
@@ -16,5 +12,29 @@ namespace Infrastructure.Repositories
         {
             _dbContext = dbContext;
         }
+
+        public MedicalRecord? GetMedicalRecordById(int id) =>
+            _dbContext.MedicalRecords
+                .Include(m => m.Prescriptions)
+                    .ThenInclude(p => p.Items)
+                        .ThenInclude(i => i.Medication)
+                .Include(m => m.SickLeave)
+                .FirstOrDefault(m => m.MedicalRecordId == id);
+
+        public List<MedicalRecord> GetAllMedicalRecords() =>
+            _dbContext.MedicalRecords
+                .Include(m => m.Prescriptions)
+                    .ThenInclude(p => p.Items)
+                        .ThenInclude(i => i.Medication)
+                .Include(m => m.SickLeave)
+                .ToList();
+
+        public MedicalRecord? GetMedicalRecordByVisitId(int visitId) =>
+            _dbContext.MedicalRecords
+                .Include(m => m.Prescriptions)
+                    .ThenInclude(p => p.Items)
+                        .ThenInclude(i => i.Medication)
+                .Include(m => m.SickLeave)
+                .FirstOrDefault(m => m.VisitId == visitId);
     }
 }

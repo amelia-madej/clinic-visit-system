@@ -14,7 +14,7 @@ namespace Application.Validators
             RuleFor(x => x.Password).NotEmpty().MinimumLength(10);
             RuleFor(x => x.Specialization).NotEmpty();
             RuleFor(x => x.LicenseNumber).NotEmpty();
-            RuleFor(x => x.Gender).NotEmpty();
+            RuleFor(x => x.Gender).IsInEnum();
         }
     }
 

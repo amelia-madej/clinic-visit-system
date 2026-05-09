@@ -1,6 +1,5 @@
 using AutoMapper;
 using Domain.Models;
-using Domain;
 using SharedKernel.DTOs;
 
 namespace Application.Mapping
@@ -77,16 +76,21 @@ namespace Application.Mapping
             CreateMap<VisitCreateDto, Visit>();
 
             // MedicalRecord
-            CreateMap<MedicalRecord, MedicalRecordDto>();
+            CreateMap<MedicalRecord, MedicalRecordDto>()
+                .ForMember(d => d.Id, opt => opt.MapFrom(s => s.MedicalRecordId));
 
             // Prescription
-            CreateMap<Prescription, PrescriptionListItemDto>();
-            CreateMap<Prescription, PrescriptionDetailsDto>();
+            CreateMap<Prescription, PrescriptionListItemDto>()
+                .ForMember(d => d.Id, opt => opt.MapFrom(s => s.PrescriptionId));
+            CreateMap<Prescription, PrescriptionDetailsDto>()
+                .ForMember(d => d.Id, opt => opt.MapFrom(s => s.PrescriptionId));
             CreateMap<PrescriptionItem, PrescriptionItemDto>()
+                .ForMember(d => d.Id, opt => opt.MapFrom(s => s.PrescriptionItemId))
                 .ForMember(d => d.MedicationName, opt => opt.MapFrom(s => s.Medication != null ? s.Medication.Name : string.Empty));
 
-            CreateMap<PrescriptionCreateDto, Prescription>();
-            CreateMap<PrescriptionItemCreateDto, PrescriptionItem>();
+            // SickLeave
+            CreateMap<SickLeave, SickLeaveListItemDto>();
+            CreateMap<SickLeave, SickLeaveDetailsDto>();
 
             // Medication
             CreateMap<Medication, MedicationDto>();

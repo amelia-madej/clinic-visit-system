@@ -12,6 +12,7 @@ namespace SharedKernel.DTOs
         public string Diagnosis { get; set; } = default!;
         public string Recommendations { get; set; } = default!;
         public List<PrescriptionListItemDto> Prescriptions { get; set; } = new();
+        public SickLeaveListItemDto? SickLeave { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

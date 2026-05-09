@@ -1,8 +1,12 @@
+using SharedKernel;
+using System.Linq;
 using Application.Mapping;
 using Application.Services;
 using Application.Validators;
 using Domain.Contracts;
+using Domain.Models;
 using FluentValidation;
+using Infrastructure;
 using Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -52,6 +56,10 @@ try
     builder.Services.AddScoped<IValidator<VisitCompleteDto>, VisitCompleteDtoValidator>();
     builder.Services.AddScoped<IValidator<PrescriptionCreateDto>, PrescriptionCreateDtoValidator>();
     builder.Services.AddScoped<IValidator<PrescriptionItemCreateDto>, PrescriptionItemCreateDtoValidator>();
+    builder.Services.AddScoped<IValidator<MedicalRecordDto>, MedicalRecordUpdateDtoValidator>();
+    builder.Services.AddScoped<IValidator<SickLeaveCreateDto>, SickLeaveCreateDtoValidator>();
+    builder.Services.AddScoped<IValidator<SickLeaveUpdateDto>, SickLeaveUpdateDtoValidator>();
+    builder.Services.AddScoped<IValidator<SickLeaveCompleteDto>, SickLeaveCompleteDtoValidator>();
     builder.Services.AddScoped<IValidator<CreateUserDto>, CreateUserValidator>();
     builder.Services.AddScoped<IValidator<UpdateUserDto>, UpdateUserValidator>();
 
@@ -71,6 +79,13 @@ try
     builder.Services.AddScoped<IMedicationService, MedicationService>();
     builder.Services.AddScoped<IPatientService, PatientService>();
     builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<IVisitService, VisitService>();
+    builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
+    builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();
+    builder.Services.AddScoped<IPrescriptionItemService, PrescriptionItemService>();
+    builder.Services.AddScoped<ISickLeaveService, SickLeaveService>();
+
+    builder.Services.AddScoped<DataSeeder>();
 
     // rejestruje w kontenerze zale�no�ci polityk� CORS o nazwie SaleKioks,
     // kt�ra zapewnia dost�p do API z dowolnego miejsca oraz przy pomocy dowolnej metody
@@ -101,7 +116,11 @@ try
     // wstawia polityk� CORS obs�ugi do potoku ��dania
     app.UseCors("ClinicVisit");
 
-    // seeding data here
+    using (var scope = app.Services.CreateScope())
+    {
+        var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
+        dataSeeder.Seed();
+    }
 
     app.Run();
 }

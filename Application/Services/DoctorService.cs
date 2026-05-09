@@ -44,7 +44,7 @@ namespace Application.Services
                 throw new Exception("User with this phone number already exists");
 
             var user = _mapper.Map<User>(dto);
-            user.Role = UserRole.Patient;
+            user.Role = UserRole.Doctor;
 
             _uow.UserRepository.Insert(user);
             _uow.Commit();
