@@ -95,14 +95,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Create([FromBody] PatientCreateDto dto)
         {
+            _logger.LogDebug("Rozpoczęto tworzenie nowego pacjenta");
             try
             {
                 var id = _patientService.Create(dto);
-
+                _logger.LogDebug($"Zakończono tworzenie pacjenta o id {id}");
                 return CreatedAtAction(nameof(GetById), new { id }, id);
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas tworzenia pacjenta: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -114,17 +116,22 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Update(int id, [FromBody] PatientUpdateDto dto)
         {
+            _logger.LogDebug($"Rozpoczęto aktualizację pacjenta o id {id}");
             try
             {
                 if (id != dto.PatientId)
+                {
+                    _logger.LogError($"Id param is not valid: {id} != {dto.PatientId}");
                     throw new Exception("Id param is not valid");
+                }
 
                 _patientService.Update(dto);
-
+                _logger.LogDebug($"Zakończono aktualizację pacjenta o id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas aktualizacji pacjenta: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -135,14 +142,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult Delete(int id)
         {
+            _logger.LogDebug($"Rozpoczęto usuwanie pacjenta o id {id}");
             try
             {
                 _patientService.Delete(id);
-
+                _logger.LogDebug($"Zakończono usuwanie pacjenta o id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas usuwania pacjenta: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }

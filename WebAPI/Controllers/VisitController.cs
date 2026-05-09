@@ -10,10 +10,14 @@ namespace WebAPI.Controllers
     public class VisitController : ControllerBase
     {
         private readonly IVisitService _visitService;
+        private readonly ILogger<VisitController> _logger;
 
-        public VisitController(IVisitService visitService)
+        public VisitController(
+            IVisitService visitService,
+            ILogger<VisitController> logger)
         {
             _visitService = visitService;
+            _logger = logger;
         }
 
         // GET api/visit
@@ -21,7 +25,9 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<VisitListItemDto>> GetAll()
         {
+            _logger.LogDebug("Rozpoczęto pobieranie listy wszystkich wizyt");
             var visits = _visitService.GetAll();
+            _logger.LogDebug("Zakończono pobieranie listy wszystkich wizyt");
             return Ok(visits);
         }
 
@@ -32,10 +38,15 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<VisitDetailsDto> GetById(int id)
         {
+            _logger.LogDebug($"Rozpoczęto pobieranie wizyty o id {id}");
             var visit = _visitService.GetById(id);
             if (visit == null)
+            {
+                _logger.LogError($"Visit with id {id} not found");
                 return NotFound("Visit not found");
+            }
 
+            _logger.LogDebug($"Zakończono pobieranie wizyty o id {id}");
             return Ok(visit);
         }
 
@@ -96,13 +107,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Create([FromBody] VisitCreateDto dto)
         {
+            _logger.LogDebug("Rozpoczęto tworzenie nowej wizyty");
             try
             {
                 var id = _visitService.Create(dto);
+                _logger.LogDebug($"Zakończono tworzenie wizyty o id {id}");
                 return CreatedAtAction(nameof(GetById), new { id }, id);
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas tworzenia wizyty: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -114,13 +128,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Update([FromBody] VisitUpdateDto dto)
         {
+            _logger.LogDebug($"Rozpoczęto aktualizację wizyty o id {dto.VisitId}");
             try
             {
                 _visitService.Update(dto);
+                _logger.LogDebug($"Zakończono aktualizację wizyty o id {dto.VisitId}");
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas aktualizacji wizyty: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }

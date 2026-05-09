@@ -130,14 +130,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Create([FromBody] CreateUserDto dto)
         {
+            _logger.LogDebug("Rozpoczęto tworzenie nowego użytkownika");
             try
             {
                 var id = _userService.Create(dto);
-
+                _logger.LogDebug($"Zakończono tworzenie użytkownika o id {id}");
                 return CreatedAtAction(nameof(GetById), new { id }, id);
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas tworzenia użytkownika: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -149,17 +151,22 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Update(int id, [FromBody] UpdateUserDto dto)
         {
+            _logger.LogDebug($"Rozpoczęto aktualizację użytkownika o id {id}");
             try
             {
                 if (id != dto.UserId)
+                {
+                    _logger.LogError($"Id param is not valid: {id} != {dto.UserId}");
                     throw new Exception("Id param is not valid");
+                }
 
                 _userService.Update(dto);
-
+                _logger.LogDebug($"Zakończono aktualizację użytkownika o id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas aktualizacji użytkownika: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -171,14 +178,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Delete(int id)
         {
+            _logger.LogDebug($"Rozpoczęto usuwanie użytkownika o id {id}");
             try
             {
                 _userService.Delete(id);
-
+                _logger.LogDebug($"Zakończono usuwanie użytkownika o id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas usuwania użytkownika: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }

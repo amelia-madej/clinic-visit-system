@@ -11,11 +11,16 @@ namespace WebAPI.Controllers
     {
         private readonly IPrescriptionService _prescriptionService;
         private readonly IPrescriptionItemService _prescriptionItemService;
+        private readonly ILogger<PrescriptionController> _logger;
 
-        public PrescriptionController(IPrescriptionService prescriptionService, IPrescriptionItemService prescriptionItemService)
+        public PrescriptionController(
+            IPrescriptionService prescriptionService,
+            IPrescriptionItemService prescriptionItemService,
+            ILogger<PrescriptionController> logger)
         {
             _prescriptionService = prescriptionService;
             _prescriptionItemService = prescriptionItemService;
+            _logger = logger;
         }
 
         // GET api/prescription
@@ -23,7 +28,9 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<PrescriptionListItemDto>> GetAll()
         {
+            _logger.LogDebug("Rozpoczęto pobieranie listy wszystkich recept");
             var prescriptions = _prescriptionService.GetAll();
+            _logger.LogDebug("Zakończono pobieranie listy wszystkich recept");
             return Ok(prescriptions);
         }
 
@@ -34,12 +41,17 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<PrescriptionDetailsDto> GetById(int id)
         {
+            _logger.LogDebug($"Rozpoczęto pobieranie recepty o id {id}");
             try
             {
                 var prescription = _prescriptionService.GetById(id);
                 if (prescription == null)
+                {
+                    _logger.LogError($"Prescription with id {id} not found");
                     return NotFound("Prescription not found");
+                }
 
+                _logger.LogDebug($"Zakończono pobieranie recepty o id {id}");
                 return Ok(prescription);
             }
             catch (Exception ex)
@@ -97,13 +109,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Create([FromQuery] int medicalRecordId, [FromBody] PrescriptionCreateDto dto)
         {
+            _logger.LogDebug($"Rozpoczęto tworzenie nowej recepty dla rekordu medycznego {medicalRecordId}");
             try
             {
                 var id = _prescriptionService.Create(dto, medicalRecordId);
+                _logger.LogDebug($"Zakończono tworzenie recepty o id {id}");
                 return CreatedAtAction(nameof(GetById), new { id }, id);
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas tworzenia recepty: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -115,13 +130,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Update(int id, [FromBody] PrescriptionCreateDto dto)
         {
+            _logger.LogDebug($"Rozpoczęto aktualizację recepty o id {id}");
             try
             {
                 _prescriptionService.Update(id, dto);
+                _logger.LogDebug($"Zakończono aktualizację recepty o id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas aktualizacji recepty: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -133,13 +151,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Delete(int id)
         {
+            _logger.LogDebug($"Rozpoczęto usuwanie recepty o id {id}");
             try
             {
                 _prescriptionService.Delete(id);
+                _logger.LogDebug($"Zakończono usuwanie recepty o id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas usuwania recepty: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }

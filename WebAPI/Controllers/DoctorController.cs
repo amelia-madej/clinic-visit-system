@@ -82,14 +82,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Create([FromBody] DoctorCreateDto dto)
         {
+            _logger.LogDebug("Rozpoczęto tworzenie nowego lekarza");
             try
             {
                 var id = _doctorService.Create(dto);
-
+                _logger.LogDebug($"Zakończono tworzenie lekarza o id {id}");
                 return CreatedAtAction(nameof(GetById), new { id }, id);
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas tworzenia lekarza: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -101,19 +103,22 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Update(int id, [FromBody] DoctorUpdateDto dto)
         {
+            _logger.LogDebug($"Rozpoczęto aktualizację lekarza o id {id}");
             try
             {
                 if (id != dto.DoctorId)
                 {
+                    _logger.LogError($"Id param is not valid: {id} != {dto.DoctorId}");
                     throw new Exception("Id param is not valid");
                 }
 
                 _doctorService.Update(dto);
-
+                _logger.LogDebug($"Zakończono aktualizację lekarza o id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas aktualizacji lekarza: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -124,14 +129,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult Delete(int id)
         {
+            _logger.LogDebug($"Rozpoczęto usuwanie lekarza o id {id}");
             try
             {
                 _doctorService.Delete(id);
-
+                _logger.LogDebug($"Zakończono usuwanie lekarza o id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas usuwania lekarza: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }

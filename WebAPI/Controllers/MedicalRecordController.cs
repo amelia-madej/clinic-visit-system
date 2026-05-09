@@ -9,10 +9,14 @@ namespace WebAPI.Controllers
     public class MedicalRecordController : ControllerBase
     {
         private readonly IMedicalRecordService _medicalRecordService;
+        private readonly ILogger<MedicalRecordController> _logger;
 
-        public MedicalRecordController(IMedicalRecordService medicalRecordService)
+        public MedicalRecordController(
+            IMedicalRecordService medicalRecordService,
+            ILogger<MedicalRecordController> logger)
         {
             _medicalRecordService = medicalRecordService;
+            _logger = logger;
         }
 
         // GET api/medicalrecord
@@ -20,7 +24,9 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<MedicalRecordDto>> GetAll()
         {
+            _logger.LogDebug("Rozpoczęto pobieranie listy wszystkich rekordów medycznych");
             var records = _medicalRecordService.GetAll();
+            _logger.LogDebug("Zakończono pobieranie listy wszystkich rekordów medycznych");
             return Ok(records);
         }
 
@@ -31,12 +37,17 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<MedicalRecordDto> GetById(int id)
         {
+            _logger.LogDebug($"Rozpoczęto pobieranie rekordu medycznego o id {id}");
             try
             {
                 var record = _medicalRecordService.GetById(id);
                 if (record == null)
+                {
+                    _logger.LogError($"Medical record with id {id} not found");
                     return NotFound("Medical record not found");
+                }
 
+                _logger.LogDebug($"Zakończono pobieranie rekordu medycznego o id {id}");
                 return Ok(record);
             }
             catch (Exception ex)
@@ -73,13 +84,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Update([FromBody] MedicalRecordDto dto)
         {
+            _logger.LogDebug($"Rozpoczęto aktualizację rekordu medycznego o id {dto.MedicalRecordId}");
             try
             {
                 _medicalRecordService.Update(dto);
+                _logger.LogDebug($"Zakończono aktualizację rekordu medycznego o id {dto.MedicalRecordId}");
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas aktualizacji rekordu medycznego: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -91,13 +105,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Delete(int id)
         {
+            _logger.LogDebug($"Rozpoczęto usuwanie rekordu medycznego o id {id}");
             try
             {
                 _medicalRecordService.Delete(id);
+                _logger.LogDebug($"Zakończono usuwanie rekordu medycznego o id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Błąd podczas usuwania rekordu medycznego: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
