@@ -20,6 +20,7 @@ namespace SharedKernel.DTOs
         public string PESEL { get; set; } = default!;
         public Gender Gender { get; set; } = default!;
         public DateTime DateOfBirth { get; set; }
+        public int Age { get; set; }
         public string Address { get; set; } = default!;
         public List<VisitListItemDto> Visits { get; set; } = new();
     }

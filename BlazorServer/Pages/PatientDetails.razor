@@ -1,0 +1,112 @@
+@page "/patients/{Id:int}"
+@inject IPatientService PatientService
+@inject NavigationManager Nav
+
+<PageTitle>Patient Details</PageTitle>
+
+@if (_patient is null)
+{
+    <MudText>Patient not found.</MudText>
+    return;
+}
+
+@* Header *@
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                   OnClick='() => Nav.NavigateTo("/patients")' />
+    <MudText Typo="Typo.h4">
+        @_patient.User.FirstName @_patient.User.LastName
+    </MudText>
+</MudStack>
+
+@* Info card *@
+<MudCard Elevation="2" Class="mb-4">
+    <MudCardContent>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">PESEL</MudText>
+                <MudText Typo="Typo.body1">@_patient.PESEL</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">Gender</MudText>
+                <MudText Typo="Typo.body1">@_patient.Gender</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">Date of Birth</MudText>
+                <MudText Typo="Typo.body1">
+                    @_patient.DateOfBirth.ToString("dd/MM/yyyy")
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Inline="true">
+                        (@_patient.Age years old)
+                    </MudText>
+                </MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">Address</MudText>
+                <MudText Typo="Typo.body1">@_patient.Address</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">Email</MudText>
+                <MudText Typo="Typo.body1">@_patient.User.Email</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">Phone</MudText>
+                <MudText Typo="Typo.body1">@_patient.User.PhoneNumber</MudText>
+            </MudItem>
+        </MudGrid>
+    </MudCardContent>
+</MudCard>
+
+@* Visit history *@
+<MudText Typo="Typo.h5" Class="mb-3">Visit History</MudText>
+
+@if (_patient.Visits.Count == 0)
+{
+    <MudText Color="Color.Secondary">No visits recorded for this patient.</MudText>
+}
+else
+{
+    <MudTable Items="_patient.Visits" Hover="true" Dense="true" Elevation="2"
+              SortLabel="Sort by">
+        <HeaderContent>
+            <MudTh><MudTableSortLabel SortBy="new Func<VisitListItemDto, object>(v => v.VisitDateTime)">Date & Time</MudTableSortLabel></MudTh>
+            <MudTh>Type</MudTh>
+            <MudTh>Doctor</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.VisitDateTime.ToString("dd/MM/yyyy HH:mm")</MudTd>
+            <MudTd>@context.VisitType</MudTd>
+            <MudTd>@context.Doctor?.FirstName @context.Doctor?.LastName</MudTd>
+            <MudTd>
+                <MudChip T="string" Size="Size.Small" Color="@StatusColor(context.Status)">
+                    @context.Status
+                </MudChip>
+            </MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                               Size="Size.Small"
+                               Href="@($"visits/{context.VisitId}")" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private PatientDetailsDto? _patient;
+
+    protected override void OnInitialized()
+    {
+        _patient = PatientService.GetById(Id);
+    }
+
+    private Color StatusColor(string status) => status switch
+    {
+        "Scheduled" => Color.Info,
+        "Completed" => Color.Success,
+        "Cancelled" => Color.Error,
+        _           => Color.Default
+    };
+}

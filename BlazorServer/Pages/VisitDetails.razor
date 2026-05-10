@@ -1,0 +1,400 @@
+@page "/visits/{Id:int}"
+@inject IVisitService VisitService
+@inject IPrescriptionService PrescriptionService
+@inject IMedicationService MedicationService
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<PageTitle>Visit Details</PageTitle>
+
+@if (_visit is null)
+{
+    <MudText>Visit not found.</MudText>
+    return;
+}
+
+@* Header *@
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                   OnClick='() => Nav.NavigateTo("/visits")' />
+    <MudText Typo="Typo.h4">Visit Details</MudText>
+    <MudSpacer />
+    <MudChip T="string" Color="@StatusColor(_visit.Status)" Size="Size.Medium">
+        @_visit.Status
+    </MudChip>
+</MudStack>
+
+@* Summary card *@
+<MudCard Elevation="2" Class="mb-4">
+    <MudCardContent>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">Patient</MudText>
+                <MudText Typo="Typo.h6">
+                    @_visit.Patient?.User.FirstName @_visit.Patient?.User.LastName
+                </MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    PESEL: @_visit.Patient?.PESEL
+                </MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">Doctor</MudText>
+                <MudText Typo="Typo.h6">
+                    Dr. @_visit.Doctor?.User.FirstName @_visit.Doctor?.User.LastName
+                </MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    @_visit.Doctor?.Specialization
+                </MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">Date & Time</MudText>
+                <MudText Typo="Typo.body1">@_visit.VisitDateTime.ToString("dd/MM/yyyy HH:mm")</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">Visit Type</MudText>
+                <MudText Typo="Typo.body1">@_visit.VisitType</MudText>
+            </MudItem>
+        </MudGrid>
+    </MudCardContent>
+    @if (_visit.Status == "Scheduled")
+    {
+        <MudCardActions>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.CheckCircle"
+                       OnClick="OpenCompleteDialog">
+                Complete Visit
+            </MudButton>
+        </MudCardActions>
+    }
+</MudCard>
+
+@* Medical record *@
+@if (_visit.MedicalRecord is not null)
+{
+    var record = _visit.MedicalRecord;
+
+    <MudText Typo="Typo.h5" Class="mb-3">Medical Record</MudText>
+
+    <MudCard Elevation="2" Class="mb-4">
+        <MudCardContent>
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.overline" Color="Color.Secondary">Interview</MudText>
+                    <MudText Typo="Typo.body1">@record.Interview</MudText>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.overline" Color="Color.Secondary">Diagnosis</MudText>
+                    <MudText Typo="Typo.body1">@record.Diagnosis</MudText>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.overline" Color="Color.Secondary">Recommendations</MudText>
+                    <MudText Typo="Typo.body1">@record.Recommendations</MudText>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    @if (record.SickLeave is not null)
+    {
+        <MudText Typo="Typo.h6" Class="mb-2">Sick Leave</MudText>
+        <MudCard Elevation="2" Class="mb-4">
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" sm="4">
+                        <MudText Typo="Typo.overline" Color="Color.Secondary">From</MudText>
+                        <MudText Typo="Typo.body1">@record.SickLeave.StartDate.ToString("dd/MM/yyyy")</MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudText Typo="Typo.overline" Color="Color.Secondary">To</MudText>
+                        <MudText Typo="Typo.body1">@record.SickLeave.EndDate.ToString("dd/MM/yyyy")</MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudText Typo="Typo.overline" Color="Color.Secondary">Reason</MudText>
+                        <MudText Typo="Typo.body1">@record.SickLeave.Reason</MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+    }
+
+    @if (_prescriptions.Count > 0)
+    {
+        <MudText Typo="Typo.h6" Class="mb-2">Prescriptions</MudText>
+        @foreach (var rx in _prescriptions)
+        {
+            <MudCard Elevation="2" Class="mb-3">
+                <MudCardContent>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                        Issued: @rx.CreatedAt.ToString("dd/MM/yyyy")
+                        @if (rx.ValidUntil.HasValue)
+                        {
+                            <span> &middot; Valid until: @rx.ValidUntil.Value.ToString("dd/MM/yyyy")</span>
+                        }
+                    </MudText>
+                    <MudTable Items="rx.Items" Dense="true" Elevation="0">
+                        <HeaderContent>
+                            <MudTh>Medication</MudTh>
+                            <MudTh>Dosage</MudTh>
+                            <MudTh>Quantity</MudTh>
+                            <MudTh>Instructions</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context.MedicationName</MudTd>
+                            <MudTd>@context.Dosage</MudTd>
+                            <MudTd>@context.Quantity</MudTd>
+                            <MudTd>@context.Instructions</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent>
+            </MudCard>
+        }
+    }
+}
+
+@* Complete visit dialog *@
+<MudDialog @bind-Visible="_completeDialogOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Complete Visit</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+
+            @* Clinical fields *@
+            <MudTextField @bind-Value="_completeForm.Interview"
+                          Label="Interview" Lines="3" Required="true" />
+            <MudTextField @bind-Value="_completeForm.Diagnosis"
+                          Label="Diagnosis" Lines="3" Required="true" />
+            <MudTextField @bind-Value="_completeForm.Recommendations"
+                          Label="Recommendations" Lines="3" Required="true" />
+
+            @* Sick leave *@
+            <MudSwitch @bind-Value="_includeSickLeave" Color="Color.Primary" Label="Issue sick leave" />
+            @if (_includeSickLeave)
+            {
+                <MudDatePicker @bind-Date="_sickLeaveStart" Label="From" Required="true" />
+                <MudDatePicker @bind-Date="_sickLeaveEnd"   Label="To"   Required="true" />
+                <MudTextField  @bind-Value="_sickLeaveReason" Label="Reason" Required="true" />
+            }
+
+            @* Prescriptions *@
+            <MudDivider />
+            <MudStack Row="true" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.subtitle1">Prescriptions</MudText>
+                <MudSpacer />
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           Size="Size.Small"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="AddPrescription">
+                    Add Prescription
+                </MudButton>
+            </MudStack>
+
+            @for (int pi = 0; pi < _completeForm.Prescriptions.Count; pi++)
+            {
+                var rxIndex = pi;
+                var rx = _completeForm.Prescriptions[rxIndex];
+
+                <MudPaper Outlined="true" Class="pa-3">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+                        <MudText Typo="Typo.subtitle2">Prescription @(rxIndex + 1)</MudText>
+                        <MudSpacer />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Size="Size.Small"
+                                       Color="Color.Error"
+                                       OnClick="() => RemovePrescription(rxIndex)" />
+                    </MudStack>
+
+                    <MudDatePicker Label="Valid Until (optional)"
+                                   Date="rx.ValidUntil"
+                                   DateChanged="d => rx.ValidUntil = d"
+                                   Class="mb-3" />
+
+                    @* Items *@
+                    @for (int ii = 0; ii < rx.Items.Count; ii++)
+                    {
+                        var itemIndex = ii;
+                        var item = rx.Items[itemIndex];
+
+                        <MudPaper Outlined="true" Class="pa-2 mb-2">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-1">
+                                <MudText Typo="Typo.caption">Item @(itemIndex + 1)</MudText>
+                                <MudSpacer />
+                                <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                               Size="Size.Small"
+                                               OnClick="() => RemoveItem(rxIndex, itemIndex)" />
+                            </MudStack>
+                            <MudGrid Spacing="2">
+                                <MudItem xs="12">
+                                    <MudAutocomplete T="MedicationDto"
+                                                     Label="Medication"
+                                                     Value="_medications.FirstOrDefault(m => m.MedicationId == item.MedicationId)"
+                                                     ValueChanged="med => item.MedicationId = med?.MedicationId ?? 0"
+                                                     SearchFunc="SearchMedications"
+                                                     ToStringFunc="MedicationToString"
+                                                     ResetValueOnEmptyText="true"
+                                                     CoerceText="false"
+                                                     Required="true" />
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <MudTextField Label="Dosage"
+                                                  Value="item.Dosage"
+                                                  ValueChanged="@((string v) => item.Dosage = v)"
+                                                  Required="true" />
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <MudNumericField T="int"
+                                                     Label="Quantity"
+                                                     Value="item.Quantity"
+                                                     ValueChanged="v => item.Quantity = v"
+                                                     Min="1" Required="true" />
+                                </MudItem>
+                                <MudItem xs="12">
+                                    <MudTextField Label="Instructions"
+                                                  Value="item.Instructions"
+                                                  ValueChanged="@((string v) => item.Instructions = v)"
+                                                  Required="true" />
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+                    }
+
+                    <MudButton Variant="Variant.Text"
+                               Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="() => AddItem(rxIndex)">
+                        Add Medication
+                    </MudButton>
+                </MudPaper>
+            }
+
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseCompleteDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CompleteVisit">
+            Complete
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private VisitDetailsDto?             _visit              = null;
+    private List<PrescriptionDetailsDto> _prescriptions      = new();
+    private List<MedicationDto>          _medications        = new();
+    private bool                         _completeDialogOpen = false;
+
+    private VisitCompleteDto _completeForm     = new();
+    private bool             _includeSickLeave = false;
+    private DateTime?        _sickLeaveStart   = DateTime.Today;
+    private DateTime?        _sickLeaveEnd     = DateTime.Today.AddDays(7);
+    private string           _sickLeaveReason  = string.Empty;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        CloseOnEscapeKey = true,
+        MaxWidth         = MaxWidth.Medium,
+        FullWidth        = true
+    };
+
+    protected override void OnInitialized()
+    {
+        _medications = MedicationService.GetAll();
+        LoadVisit();
+    }
+
+    private void LoadVisit()
+    {
+        _visit = VisitService.GetById(Id);
+
+        _prescriptions = _visit?.MedicalRecord?.Prescriptions
+            .Select(p => PrescriptionService.GetById(p.Id))
+            .Where(p => p is not null)
+            .Cast<PrescriptionDetailsDto>()
+            .ToList() ?? new();
+    }
+
+    private void OpenCompleteDialog()
+    {
+        _completeForm     = new VisitCompleteDto();
+        _includeSickLeave = false;
+        _sickLeaveStart   = DateTime.Today;
+        _sickLeaveEnd     = DateTime.Today.AddDays(7);
+        _sickLeaveReason  = string.Empty;
+        _completeDialogOpen = true;
+    }
+
+    private void CloseCompleteDialog() => _completeDialogOpen = false;
+
+    private void AddPrescription() =>
+        _completeForm.Prescriptions.Add(new PrescriptionCreateDto());
+
+    private void RemovePrescription(int index) =>
+        _completeForm.Prescriptions.RemoveAt(index);
+
+    private void AddItem(int rxIndex) =>
+        _completeForm.Prescriptions[rxIndex].Items.Add(new PrescriptionItemCreateDto());
+
+    private void RemoveItem(int rxIndex, int itemIndex) =>
+        _completeForm.Prescriptions[rxIndex].Items.RemoveAt(itemIndex);
+
+    private void CompleteVisit()
+    {
+        if (_includeSickLeave)
+        {
+            var start = _sickLeaveStart ?? DateTime.Today;
+            var end   = _sickLeaveEnd   ?? DateTime.Today.AddDays(7);
+
+            if (end < start)
+            {
+                Snackbar.Add("Sick leave end date must be on or after the start date.", Severity.Warning);
+                return;
+            }
+
+            _completeForm.SickLeave = new SickLeaveCompleteDto
+            {
+                StartDate = start,
+                EndDate   = end,
+                Reason    = _sickLeaveReason
+            };
+        }
+
+        try
+        {
+            VisitService.CompleteVisit(Id, _completeForm);
+            _completeDialogOpen = false;
+            Snackbar.Add("Visit completed.", Severity.Success);
+            LoadVisit();
+        }
+        catch (global::FluentValidation.ValidationException ex)
+        {
+            var message = string.Join(" ", ex.Errors.Select(e => e.ErrorMessage));
+            Snackbar.Add(message, Severity.Error);
+        }
+    }
+
+    private Task<IEnumerable<MedicationDto>> SearchMedications(string search, CancellationToken ct)
+    {
+        var results = string.IsNullOrWhiteSpace(search)
+            ? _medications
+            : _medications.Where(m =>
+                m.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                m.ActiveIngredient.Contains(search, StringComparison.OrdinalIgnoreCase));
+
+        return Task.FromResult(results.AsEnumerable());
+    }
+
+    private string MedicationToString(MedicationDto? m) =>
+        m is null ? string.Empty : $"{m.Name} {m.StrengthValue} {m.StrengthUnit}";
+
+    private Color StatusColor(string status) => status switch
+    {
+        "Scheduled" => Color.Info,
+        "Completed" => Color.Success,
+        "Cancelled" => Color.Error,
+        _           => Color.Default
+    };
+}

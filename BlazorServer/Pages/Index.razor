@@ -1,0 +1,66 @@
+@page "/"
+@inject IDoctorService DoctorService
+@inject AppStateService AppState
+@inject NavigationManager Nav
+
+<PageTitle>Doctor Portal</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height:100vh;">
+    <MudCard Elevation="4" Style="width:100%;">
+        <MudCardContent Class="pa-8">
+            <MudStack AlignItems="AlignItems.Center" Spacing="2" Class="mb-6">
+                <MudIcon Icon="@Icons.Material.Filled.LocalHospital"
+                         Color="Color.Primary"
+                         Style="font-size:3rem;" />
+                <MudText Typo="Typo.h5">Doctor Portal</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Select your profile to continue
+                </MudText>
+            </MudStack>
+
+            <MudSelect T="DoctorListItemDto"
+                       @bind-Value="_selected"
+                       Label="Select Doctor"
+                       Variant="Variant.Outlined"
+                       ToStringFunc="DoctorToString"
+                       FullWidth="true"
+                       Class="mb-4">
+                @foreach (var d in _doctors)
+                {
+                    <MudSelectItem T="DoctorListItemDto" Value="@d">
+                        Dr. @d.FirstName @d.LastName — @d.Specialization
+                    </MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       Size="Size.Large"
+                       Disabled="_selected is null"
+                       OnClick="Continue">
+                Continue
+            </MudButton>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private List<DoctorListItemDto> _doctors = new();
+    private DoctorListItemDto? _selected;
+
+    protected override void OnInitialized()
+    {
+        _doctors = DoctorService.GetAll();
+    }
+
+    private void Continue()
+    {
+        if (_selected is null) return;
+        AppState.SetDoctor(_selected);
+        Nav.NavigateTo("/visits");
+    }
+
+    private string DoctorToString(DoctorListItemDto? d) =>
+        d is null ? string.Empty : $"Dr. {d.FirstName} {d.LastName}";
+}

@@ -1,0 +1,66 @@
+@page "/medications"
+@inject IMedicationService MedicationService
+
+<PageTitle>Medications - Doctor Portal</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-4">Medication Catalog</MudText>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <MudTextField @bind-Value="_search"
+                  Label="Search medications"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  Clearable="true"
+                  Class="mb-4" />
+
+    <MudTable Items="Filtered" Hover="true" Striped="true" Elevation="2" Dense="true"
+              RowsPerPage="25">
+        <HeaderContent>
+            <MudTh><MudTableSortLabel SortBy="new Func<MedicationDto, object>(x => x.Name)">Name</MudTableSortLabel></MudTh>
+            <MudTh>Active Ingredient</MudTh>
+            <MudTh>Form</MudTh>
+            <MudTh>Strength</MudTh>
+            <MudTh>Dosage Form</MudTh>
+            <MudTh>Manufacturer</MudTh>
+            <MudTh>Packaging</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>@context.ActiveIngredient</MudTd>
+            <MudTd>@context.Form</MudTd>
+            <MudTd>@context.StrengthValue @context.StrengthUnit</MudTd>
+            <MudTd>@context.DosageForm</MudTd>
+            <MudTd>@context.Manufacturer</MudTd>
+            <MudTd>@context.Packaging</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No medications found.</MudText>
+        </NoRecordsContent>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+        </PagerContent>
+    </MudTable>
+}
+
+@code {
+    private List<MedicationDto> _medications = new();
+    private string _search = string.Empty;
+    private bool _loading = true;
+
+    private IEnumerable<MedicationDto> Filtered => string.IsNullOrEmpty(_search)
+        ? _medications
+        : _medications.Where(m =>
+            m.Name.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+            m.ActiveIngredient.Contains(_search, StringComparison.OrdinalIgnoreCase));
+
+    protected override void OnInitialized()
+    {
+        _medications = MedicationService.GetAll();
+        _loading = false;
+    }
+}

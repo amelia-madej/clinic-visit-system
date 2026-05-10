@@ -26,7 +26,9 @@ namespace Application.Mapping
                         : (DateTime?)null));
 
             CreateMap<Patient, PatientDetailsDto>()
-                .ForMember(d => d.User, opt => opt.MapFrom(s => s.User));
+                .ForMember(d => d.User, opt => opt.MapFrom(s => s.User))
+                .ForMember(d => d.Age, opt => opt.MapFrom(s =>
+                    DateTime.UtcNow.Year - s.DateOfBirth.Year - (DateTime.UtcNow < s.DateOfBirth.AddYears(DateTime.UtcNow.Year - s.DateOfBirth.Year) ? 1 : 0)));
 
             CreateMap<PatientCreateDto, User>()
                 .ForMember(d => d.FirstName, opt => opt.MapFrom(s => s.FirstName))

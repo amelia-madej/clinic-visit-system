@@ -84,11 +84,11 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Update([FromBody] MedicalRecordDto dto)
         {
-            _logger.LogDebug($"Rozpoczęto aktualizację rekordu medycznego o id {dto.MedicalRecordId}");
+            _logger.LogDebug($"Rozpoczęto aktualizację rekordu medycznego o id {dto.Id}");
             try
             {
                 _medicalRecordService.Update(dto);
-                _logger.LogDebug($"Zakończono aktualizację rekordu medycznego o id {dto.MedicalRecordId}");
+                _logger.LogDebug($"Zakończono aktualizację rekordu medycznego o id {dto.Id}");
                 return NoContent();
             }
             catch (Exception ex)

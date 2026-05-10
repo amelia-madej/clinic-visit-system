@@ -1,0 +1,182 @@
+@page "/visits"
+@inject IVisitService VisitService
+@inject IPatientService PatientService
+@inject IDoctorService DoctorService
+@inject ISnackbar Snackbar
+@inject AppStateService AppState
+@inject NavigationManager Nav
+@implements IDisposable
+
+<PageTitle>Visits</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudText Typo="Typo.h4">Visits</MudText>
+    <MudSpacer />
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="OpenCreateDialog">
+        New Visit
+    </MudButton>
+</MudStack>
+
+<MudDataGrid T="VisitListItemDto"
+             Items="_visits"
+             Filterable="true"
+             SortMode="SortMode.Multiple"
+             Hover="true"
+             Dense="true"
+             Loading="_loading">
+    <Columns>
+        <PropertyColumn Property="v => v.VisitDateTime" Title="Date & Time" Format="dd/MM/yyyy HH:mm" Sortable="true" />
+        <TemplateColumn Title="Patient" Sortable="false">
+            <CellTemplate>
+                @context.Item.Patient?.FirstName @context.Item.Patient?.LastName
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="Doctor" Sortable="false">
+            <CellTemplate>
+                @context.Item.Doctor?.FirstName @context.Item.Doctor?.LastName
+            </CellTemplate>
+        </TemplateColumn>
+        <PropertyColumn Property="v => v.VisitType" Title="Type" Sortable="true" />
+        <TemplateColumn Title="Status" Sortable="false">
+            <CellTemplate>
+                <MudChip T="string" Size="Size.Small" Color="@StatusColor(context.Item.Status)">
+                    @context.Item.Status
+                </MudChip>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="" Sortable="false">
+            <CellTemplate>
+                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                               Size="Size.Small"
+                               Href="@($"visits/{context.Item.VisitId}")" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <NoRecordsContent>
+        <MudText>No visits found.</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Loading visits...</MudText>
+    </LoadingContent>
+</MudDataGrid>
+
+@* Create visit dialog *@
+<MudDialog @bind-Visible="_createDialogOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">New Visit</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudSelect T="int" Label="Patient" @bind-Value="_form.PatientId" Required="true">
+                @foreach (var p in _patients)
+                {
+                    <MudSelectItem T="int" Value="@p.PatientId">
+                        @p.FirstName @p.LastName
+                    </MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSelect T="int" Label="Doctor" @bind-Value="_form.DoctorId" Required="true">
+                @foreach (var d in _doctors)
+                {
+                    <MudSelectItem T="int" Value="@d.DoctorId">
+                        @d.FirstName @d.LastName (@d.Specialization)
+                    </MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudDatePicker Label="Date" @bind-Date="_formDate" Required="true" />
+            <MudTimePicker Label="Time" @bind-Time="_formTime" Required="true" />
+
+            <MudSelect T="string" Label="Visit Type" @bind-Value="_form.VisitType" Required="true">
+                <MudSelectItem T="string" Value="@nameof(VisitType.InPerson)">In Person</MudSelectItem>
+                <MudSelectItem T="string" Value="@nameof(VisitType.Telemedicine)">Telemedicine</MudSelectItem>
+                <MudSelectItem T="string" Value="@nameof(VisitType.HomeVisit)">Home Visit</MudSelectItem>
+            </MudSelect>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseCreateDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateVisit">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<VisitListItemDto>     _visits   = new();
+    private List<PatientListItemDto>   _patients = new();
+    private List<DoctorListItemDto>    _doctors  = new();
+    private bool _loading           = true;
+    private bool _createDialogOpen  = false;
+
+    private VisitCreateDto _form     = new();
+    private DateTime?      _formDate = DateTime.Today;
+    private TimeSpan?      _formTime = new TimeSpan(8, 0, 0);
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        CloseOnEscapeKey = true,
+        MaxWidth = MaxWidth.Small,
+        FullWidth = true
+    };
+
+    protected override void OnInitialized()
+    {
+        if (AppState.CurrentDoctor is null) { Nav.NavigateTo("/"); return; }
+        _patients = PatientService.GetAll();
+        _doctors  = DoctorService.GetAll();
+        LoadVisits();
+        AppState.OnChange += OnAppStateChanged;
+    }
+
+    private void LoadVisits()
+    {
+        _loading = true;
+        _visits  = AppState.CurrentDoctor is null
+            ? VisitService.GetAll()
+            : VisitService.GetByDoctorId(AppState.CurrentDoctor.DoctorId);
+        _loading = false;
+    }
+
+    private void OnAppStateChanged()
+    {
+        LoadVisits();
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        AppState.OnChange -= OnAppStateChanged;
+    }
+
+    private void OpenCreateDialog()
+    {
+        _form     = new VisitCreateDto();
+        _formDate = DateTime.Today;
+        _formTime = new TimeSpan(8, 0, 0);
+        _createDialogOpen = true;
+    }
+
+    private void CloseCreateDialog() => _createDialogOpen = false;
+
+    private void CreateVisit()
+    {
+        _form.VisitDateTime = (_formDate ?? DateTime.Today) + (_formTime ?? TimeSpan.Zero);
+
+        VisitService.Create(_form);
+        LoadVisits();
+
+        _createDialogOpen = false;
+        Snackbar.Add("Visit created successfully.", Severity.Success);
+    }
+
+    private Color StatusColor(string status) => status switch
+    {
+        "Scheduled" => Color.Info,
+        "Completed" => Color.Success,
+        "Cancelled" => Color.Error,
+        _           => Color.Default
+    };
+}
