@@ -62,7 +62,7 @@ try
     builder.Services.AddScoped<IValidator<SickLeaveCompleteDto>, SickLeaveCompleteDtoValidator>();
     builder.Services.AddScoped<IValidator<CreateUserDto>, CreateUserValidator>();
     builder.Services.AddScoped<IValidator<UpdateUserDto>, UpdateUserValidator>();
-
+    builder.Services.AddScoped<IValidator<LoginDto>, LoginValidator>();
     // rejestracja klas
     builder.Services.AddScoped<IClinicUnitOfWork, ClinicUnitOfWork>();
     builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
@@ -86,6 +86,7 @@ try
     builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();
     builder.Services.AddScoped<IPrescriptionItemService, PrescriptionItemService>();
     builder.Services.AddScoped<ISickLeaveService, SickLeaveService>();
+    builder.Services.AddScoped<IAuthService, AuthService>();
 
     builder.Services.AddScoped<DataSeeder>();
 

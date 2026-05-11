@@ -30,6 +30,18 @@ namespace SharedKernel.DTOs
         public string? Packaging { get; set; }
         public string ActiveIngredient { get; set; } = default!;
     }
+    public class LoginDto
+    {
+        public string Email { get; set; } = null!;
+        public string Password { get; set; } = null!;
+    }
+    public class AuthResponseDto
+    {
+        public int UserId { get; set; }
+        public string FullName { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public UserRole Role { get; set; }
+    }
 }
 
 
