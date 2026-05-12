@@ -1,0 +1,82 @@
+﻿@inherits LayoutComponentBase
+@inject AppStateService AppState
+@inject NavigationManager Nav
+
+<RadzenLayout Style="height:100vh">
+    <RadzenHeader Style="background: var(--rz-primary); color:white; padding:10px">
+
+        <div style="display:flex; align-items:center; gap:10px; width:100%">
+
+            <RadzenButton Icon="menu"
+                          Click="@ToggleSidebar"
+                          ButtonStyle="ButtonStyle.Light"
+                          Size="ButtonSize.Small" />
+
+            <h4 style="margin:0">Patient Portal</h4>
+
+            <div style="margin-left:auto; display:flex; align-items:center; gap:10px">
+
+                @if (AppState.CurrentPatient is not null)
+                {
+                    <span>
+                        @AppState.CurrentPatient.FirstName
+                        @AppState.CurrentPatient.LastName
+                    </span>
+
+                    <RadzenButton Icon="logout"
+                                  ButtonStyle="ButtonStyle.Light"
+                                  Size="ButtonSize.Small"
+                                  Click="@Switch" />
+                }
+
+            </div>
+
+        </div>
+
+    </RadzenHeader>
+
+    <RadzenSidebar @bind-Expanded="_sidebarOpen"
+                   Style="background: var(--rz-base-background-color); width:220px">
+
+        <RadzenPanelMenu>
+
+            <RadzenPanelMenuItem Text="Dashboard"
+                                 Icon="home"
+                                 Path="/patient/dashboard" />
+
+            <RadzenPanelMenuItem Text="Visits"
+                                 Icon="event"
+                                 Path="/patient/visits" />
+
+            <RadzenPanelMenuItem Text="Profile"
+                                 Icon="person"
+                                 Path="/patient/profile" />
+
+        </RadzenPanelMenu>
+
+    </RadzenSidebar>
+
+    <RadzenBody>
+
+        <div style="padding:20px">
+            @Body
+        </div>
+
+    </RadzenBody>
+
+</RadzenLayout>
+
+@code {
+    private bool _sidebarOpen = true;
+
+    private void ToggleSidebar()
+    {
+        _sidebarOpen = !_sidebarOpen;
+    }
+
+    private void Switch()
+    {
+        AppState.SetPatient(null);
+        Nav.NavigateTo("/");
+    }
+}
