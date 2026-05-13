@@ -16,7 +16,7 @@ builder.Services.AddScoped<AppStateService>();
 
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri(builder.Configuration.GetValue<string>("ClientVisitAPIUrl"))
+    BaseAddress = new Uri(builder.Configuration.GetValue<string>("ClinicVisitAPIUrl"))
 });
 
 builder.Services.AddBlazoredLocalStorage();

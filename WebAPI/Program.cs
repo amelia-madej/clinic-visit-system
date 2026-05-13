@@ -112,12 +112,11 @@ try
 
     app.UseHttpsRedirection();
 
-    app.UseAuthorization();
-
-    app.MapControllers();
 
     // wstawia polityk� CORS obs�ugi do potoku ��dania
     app.UseCors("ClinicVisit");
+    app.UseAuthorization();
+    app.MapControllers();
 
     using (var scope = app.Services.CreateScope())
     {

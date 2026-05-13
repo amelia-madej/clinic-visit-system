@@ -38,21 +38,7 @@
     <RadzenSidebar @bind-Expanded="_sidebarOpen"
                    Style="background: var(--rz-base-background-color); width:220px">
 
-        <RadzenPanelMenu>
-
-            <RadzenPanelMenuItem Text="Dashboard"
-                                 Icon="home"
-                                 Path="/patient/dashboard" />
-
-            <RadzenPanelMenuItem Text="Visits"
-                                 Icon="event"
-                                 Path="/patient/visits" />
-
-            <RadzenPanelMenuItem Text="Profile"
-                                 Icon="person"
-                                 Path="/patient/profile" />
-
-        </RadzenPanelMenu>
+        <NavMenu />
 
     </RadzenSidebar>
 

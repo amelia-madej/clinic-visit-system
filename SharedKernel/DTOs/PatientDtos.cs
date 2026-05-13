@@ -11,6 +11,7 @@ namespace SharedKernel.DTOs
         public DateTime DateOfBirth { get; set; }
         public int Age { get; set; }
         public DateTime? LastVisitDate { get; set; }
+        public string FullName => $"{FirstName} {LastName}";
     }
 
     public class PatientDetailsDto
