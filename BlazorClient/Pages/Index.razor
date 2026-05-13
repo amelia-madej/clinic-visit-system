@@ -84,7 +84,7 @@
             await Task.Delay(2000); // Symulacja ładowania
             Console.WriteLine($">>> BaseAddress: {Http.BaseAddress}");
             Console.WriteLine($">>> Próba pobrania: {Http.BaseAddress}api/Patient");
-            _patients = await Http.GetFromJsonAsync<List<PatientListItemDto>>("/Patient");
+            _patients = await Http.GetFromJsonAsync<List<PatientListItemDto>>("api/Patient");
             Console.WriteLine($">>> Pobrano {_patients.Count} pacjentów");
         }
         catch (Exception ex)

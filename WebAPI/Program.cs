@@ -110,18 +110,17 @@ try
         app.UseSwaggerUI();
     }
 
-    app.UseHttpsRedirection();
-
-
-    // wstawia polityk� CORS obs�ugi do potoku ��dania
+    // wstawia polityk? CORS obs?ugi do potoku ??dania
     app.UseCors("ClinicVisit");
+
+    app.UseHttpsRedirection();
     app.UseAuthorization();
     app.MapControllers();
 
     using (var scope = app.Services.CreateScope())
     {
         var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
-        dataSeeder.Seed();
+        // dataSeeder.Seed();
 
         var medicationImport = scope.ServiceProvider.GetRequiredService<IMedicationImportService>();
         medicationImport.ImportAsync().GetAwaiter().GetResult();
