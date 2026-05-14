@@ -1,5 +1,135 @@
-﻿<h3>Doctors</h3>
+﻿@page "/patient/doctors"
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<PageTitle>Doctors</PageTitle>
+
+<RadzenStack Gap="10px" Style="width:100%">
+
+    <!-- HEADER -->
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 JustifyContent="JustifyContent.SpaceBetween"
+                 AlignItems="AlignItems.Center"
+                 class="doctors-header">
+
+        <RadzenText Text="Doctors"
+                    TextStyle="TextStyle.H4"
+                    Style="margin:0; color: var(--rz-primary-dark); font-weight: 600" />
+
+    </RadzenStack>
+
+    <!-- LOADING -->
+    @if (_loading)
+    {
+        <RadzenProgressBar Value="100"
+                           ShowValue="false"
+                           Mode="ProgressBarMode.Indeterminate" />
+    }
+    else if (_doctors.Count == 0)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Info"
+                     ShowIcon="true"
+                     Shade="Shade.Lighter">
+            No doctors to display.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenDataGrid Data="@_doctors"
+                        TItem="DoctorListItemDto"
+                        AllowSorting="true"
+                        AllowPaging="true"
+                        PageSize="10"
+                        AllowFiltering="true"
+                        FilterMode="FilterMode.Advanced"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        class="rz-datatable">
+
+            <Columns>
+
+                <RadzenDataGridColumn TItem="DoctorListItemDto"
+                                      Property="FirstName"
+                                      Title="First Name" />
+
+                <RadzenDataGridColumn TItem="DoctorListItemDto"
+                                      Property="LastName"
+                                      Title="Last Name" />
+
+                <RadzenDataGridColumn TItem="DoctorListItemDto"
+                                      Property="Specialization"
+                                      Title="Specialization" />
+
+                <RadzenDataGridColumn TItem="DoctorListItemDto"
+                                      Title="Doctor">
+
+                    <Template Context="doctor">
+
+                        <RadzenStack Orientation="Orientation.Horizontal"
+                                     AlignItems="AlignItems.Center"
+                                     Gap="12px">
+
+                            <div class="doctor-avatar">
+                                @doctor.FirstName.First()@doctor.LastName.First()
+                            </div>
+
+                            <RadzenStack Gap="0">
+
+                                <RadzenText Text="@doctor.FullName"
+                                            TextStyle="TextStyle.Body1"
+                                            Style="font-weight:600;" />
+
+                                <RadzenText Text="@doctor.Specialization"
+                                            TextStyle="TextStyle.Caption"
+                                            Style="color:gray;" />
+
+                            </RadzenStack>
+
+                        </RadzenStack>
+
+                    </Template>
+
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="DoctorListItemDto"
+                                      Title="Details"
+                                      Width="120px"
+                                      Sortable="false"
+                                      Filterable="false">
+
+                    <Template Context="doctor">
+
+                        <RadzenButton Icon="visibility"
+                                      ButtonStyle="ButtonStyle.Light"
+                                      Size="ButtonSize.Small"
+                                      Click="@(() => GoToDetails(doctor.DoctorId))" />
+
+                    </Template>
+
+                </RadzenDataGridColumn>
+
+            </Columns>
+
+        </RadzenDataGrid>
+    }
+
+</RadzenStack>
 
 @code {
 
+    private List<DoctorListItemDto> _doctors = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _doctors = await Http
+            .GetFromJsonAsync<List<DoctorListItemDto>>("api/Doctor")
+            ?? new();
+
+        _loading = false;
+    }
+
+    private void GoToDetails(int doctorId)
+    {
+        Nav.NavigateTo($"/patient/doctors/{doctorId}");
+    }
 }

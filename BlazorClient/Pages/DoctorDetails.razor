@@ -1,5 +1,138 @@
-﻿<h3>DoctorDetails</h3>
+﻿@page "/patient/doctors/{DoctorId:int}"
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<PageTitle>Doctor Details</PageTitle>
+
+<RadzenStack Gap="12px">
+
+    <!-- HEADER -->
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 JustifyContent="JustifyContent.SpaceBetween"
+                 AlignItems="AlignItems.Center">
+
+        <RadzenStack Orientation="Orientation.Horizontal"
+                     AlignItems="AlignItems.Center"
+                     Gap="10px">
+
+            <RadzenButton Icon="arrow_back"
+                          ButtonStyle="ButtonStyle.Light"
+                          Click="@(() => Nav.NavigateTo("/patient/doctors"))" />
+
+            <RadzenText Text="Doctor Details"
+                        TextStyle="TextStyle.H4"
+                        Style="margin:0; color: var(--rz-primary-dark); font-weight: 600" />
+
+        </RadzenStack>
+
+    </RadzenStack>
+
+    @if (_loading)
+    {
+        <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+    }
+    else if (_doctor is null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Danger"
+                     ShowIcon="true">
+            Doctor not found.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenCard Style="padding:24px; border-radius:12px;">
+
+            <RadzenStack Gap="20px">
+
+                <RadzenStack Orientation="Orientation.Horizontal"
+                             AlignItems="AlignItems.Center"
+                             Gap="16px">
+
+                    <div class="doctor-avatar-large">
+                        @_doctor.User.FirstName.First()@_doctor.User.LastName.First()
+                    </div>
+
+                    <RadzenStack Gap="4px">
+
+                        <RadzenText Text="@($"{_doctor.User.FirstName} {_doctor.User.LastName}")"
+                                    TextStyle="TextStyle.H5"
+                                    Style="font-weight:700;" />
+
+                        <RadzenText Text="@_doctor.Specialization"
+                                    TextStyle="TextStyle.Body1"
+                                    Style="color:gray;" />
+
+                    </RadzenStack>
+
+                </RadzenStack>
+
+                <RadzenRow Gap="20px">
+
+                    <RadzenColumn Size="6">
+
+                        <RadzenText Text="License Number"
+                                    TextStyle="TextStyle.Caption" />
+
+                        <div class="details-value">
+                            @_doctor.LicenseNumber
+                        </div>
+
+                    </RadzenColumn>
+
+                    <RadzenColumn Size="6">
+
+                        <RadzenText Text="Gender"
+                                    TextStyle="TextStyle.Caption" />
+
+                        <div class="details-value">
+                            @_doctor.Gender
+                        </div>
+
+                    </RadzenColumn>
+
+                    <RadzenColumn Size="6">
+
+                        <RadzenText Text="Email"
+                                    TextStyle="TextStyle.Caption" />
+
+                        <div class="details-value">
+                            @_doctor.User.Email
+                        </div>
+
+                    </RadzenColumn>
+
+                    <RadzenColumn Size="6">
+
+                        <RadzenText Text="Phone Number"
+                                    TextStyle="TextStyle.Caption" />
+
+                        <div class="details-value">
+                            @_doctor.User.PhoneNumber
+                        </div>
+
+                    </RadzenColumn>
+
+                </RadzenRow>
+
+            </RadzenStack>
+
+        </RadzenCard>
+    }
+
+</RadzenStack>
 
 @code {
 
+    [Parameter] public int DoctorId { get; set; }
+
+    private DoctorDetailsDto? _doctor;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _doctor = await Http
+            .GetFromJsonAsync<DoctorDetailsDto>($"api/Doctor/{DoctorId}");
+
+        _loading = false;
+    }
 }
