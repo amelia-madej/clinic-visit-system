@@ -3,60 +3,72 @@
 @inject NavigationManager Nav
 
 <RadzenLayout Style="height:100vh">
-    <RadzenHeader Style="background: var(--rz-primary); color:white; padding:10px">
 
-        <div style="display:flex; align-items:center; gap:10px; width:100%">
+    <!-- HEADER -->
+    <RadzenHeader>
+        <RadzenStack Orientation="Orientation.Horizontal"
+                     AlignItems="AlignItems.Center"
+                     JustifyContent="JustifyContent.SpaceBetween"
+                     Style="width:100%; padding:10px; background-color:#0b2545; color:white;">
 
-            <RadzenButton Icon="menu"
-                          Click="@ToggleSidebar"
-                          ButtonStyle="ButtonStyle.Light"
-                          Size="ButtonSize.Small" />
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         AlignItems="AlignItems.Center"
+                         Gap="10px">
 
-            <h4 style="margin:0">Patient Portal</h4>
+                <RadzenButton Icon="menu"
+                              Size="ButtonSize.Small"
+                              Click="@ToggleSidebar"
+                              class="menu-btn" />
 
-            <div style="margin-left:auto; display:flex; align-items:center; gap:10px">
+                <RadzenText Text="Patient Portal"
+                            TextStyle="TextStyle.Subtitle1"
+                            Style="color:white;" />
+
+            </RadzenStack>
+
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         AlignItems="AlignItems.Center"
+                         Gap="10px">
 
                 @if (AppState.CurrentPatient is not null)
                 {
-                    <span>
-                        @AppState.CurrentPatient.FirstName
-                        @AppState.CurrentPatient.LastName
-                    </span>
+                    <RadzenText Text="@($"{AppState.CurrentPatient.FirstName} {AppState.CurrentPatient.LastName}")"
+                                Style="color:white;" />
 
                     <RadzenButton Icon="logout"
-                                  ButtonStyle="ButtonStyle.Light"
                                   Size="ButtonSize.Small"
+                                  ButtonStyle="ButtonStyle.Light"
                                   Click="@Switch" />
                 }
 
-            </div>
+            </RadzenStack>
 
-        </div>
-
+        </RadzenStack>
     </RadzenHeader>
 
+    <!-- SIDEBAR -->
     <RadzenSidebar @bind-Expanded="_sidebarOpen"
-                   Style="background: var(--rz-base-background-color); width:220px">
+                   Style="background-color: var(--rz-primary-light); color:white;">
 
         <NavMenu />
 
     </RadzenSidebar>
 
-    <RadzenBody>
-
-        <div style="padding:20px">
-            @Body
-        </div>
-
+    <!-- BODY -->
+    <RadzenBody Style="background-color:white; padding:20px;">
+        @Body
     </RadzenBody>
 
 </RadzenLayout>
 
 @code {
-    private bool _sidebarOpen = true;
+    private bool _sidebarOpen = false;
 
     private void ToggleSidebar()
     {
+        if (AppState.CurrentPatient is null)
+            return;
+
         _sidebarOpen = !_sidebarOpen;
     }
 

@@ -39,10 +39,11 @@ try
 
     // rejestracja automatycznej walidacji (FluentValidation waliduje i przekazuje wynik przez ModelState)
     //builder.Services.AddFluentValidationAutoValidation();
-
+    var dbPath = Path.GetFullPath(
+    Path.Combine(builder.Environment.ContentRootPath, "..", "ClinicVisitSystem.db"));
     // rejestracja kontekstu bazy w kontenerze IoC
     // var sqliteConnectionString = "Data Source=Kiosk.WebAPI.Logger.db";
-    var sqliteConnectionString = @"Data Source = ClinicVisitSystem.db";
+    var sqliteConnectionString = $"Data Source = {dbPath}";
     builder.Services.AddDbContext<ClinicDbContext>(options =>
         options.UseSqlite(sqliteConnectionString));
 

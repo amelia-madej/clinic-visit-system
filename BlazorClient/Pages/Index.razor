@@ -5,53 +5,30 @@
 
 <PageTitle>Patient Portal</PageTitle>
 
-<div style="
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background: var(--rz-base-background-color);
-">
+<RadzenStack AlignItems="AlignItems.Center"
+             JustifyContent="JustifyContent.Center"
+             Style="min-height:100vh; background: var(--rz-base-background-color);">
 
-    <RadzenCard Style="
-        width:420px;
-        padding:32px;
-        border-radius:16px;
-        box-shadow:0 4px 20px rgba(0,0,0,0.1);
-    ">
+    <RadzenCard Style="width:420px; padding:32px; border-radius:16px;">
 
-
-        <div style="
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            margin-bottom:24px;
-        ">
+        <!-- HEADER -->
+        <RadzenStack AlignItems="AlignItems.Center"
+                     Gap="10px"
+                     Style="margin-bottom:24px;">
 
             <RadzenIcon Icon="person"
-                        Style="
-                            font-size:56px;
-                            color: var(--rz-primary);
-                            margin-bottom:12px;
-                        " />
+                        Style="font-size:56px; color: var(--rz-primary);" />
 
-            <h2 style="
-                margin:0;
-                color: var(--rz-primary-dark);
-            ">
-                Patient Portal
-            </h2>
+            <RadzenText Text="Patient Portal"
+                        TextStyle="TextStyle.H4"                                    
+                        Style="color: var(--rz-primary-dark); margin:0; font-weight:600;" />
 
-            <p style="
-                margin-top:8px;
-                color:gray;
-            ">
-                Select your profile to continue
-            </p>
+            <RadzenText Text="Select your profile to continue"
+                        Style="color:gray;" />
 
-        </div>
+        </RadzenStack>
 
-
+        <!-- DROPDOWN -->
         <RadzenDropDown Data="@_patients"
                         TValue="int?"
                         @bind-Value="_selectedPatientId"
@@ -60,32 +37,29 @@
                         Placeholder="Select Patient"
                         Style="width:100%; margin-bottom:20px;" />
 
+        <!-- BUTTON -->
         <RadzenButton Text="Continue"
                       Icon="login"
                       Click="@Continue"
-                      Disabled="_selectedPatientId is null"
+                      Disabled="@(_selectedPatientId is null)"
                       ButtonStyle="ButtonStyle.Primary"
                       Style="width:100%; height:42px;" />
 
     </RadzenCard>
 
-</div>
+</RadzenStack>
 
 @code {
 
     private List<PatientListItemDto> _patients = new();
-
     private int? _selectedPatientId;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            await Task.Delay(2000); // Symulacja ładowania
-            Console.WriteLine($">>> BaseAddress: {Http.BaseAddress}");
-            Console.WriteLine($">>> Próba pobrania: {Http.BaseAddress}api/Patient");
-            _patients = await Http.GetFromJsonAsync<List<PatientListItemDto>>("api/Patient");
-            Console.WriteLine($">>> Pobrano {_patients.Count} pacjentów");
+            _patients = await Http.GetFromJsonAsync<List<PatientListItemDto>>("api/Patient")
+                         ?? new();
         }
         catch (Exception ex)
         {
@@ -98,14 +72,12 @@
         if (_selectedPatientId is null)
             return;
 
-        var patient = _patients.FirstOrDefault(p =>
-            p.PatientId == _selectedPatientId);
+        var patient = _patients.FirstOrDefault(p => p.PatientId == _selectedPatientId);
 
         if (patient is null)
             return;
 
         AppState.SetPatient(patient);
-
         Nav.NavigateTo("/patient/dashboard");
     }
 }

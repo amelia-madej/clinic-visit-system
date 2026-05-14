@@ -9,6 +9,7 @@ namespace SharedKernel.DTOs
         public string FirstName { get; set; } = default!;
         public string LastName { get; set; } = default!;
         public string Specialization { get; set; } = default!;
+        public string FullName => $"{FirstName} {LastName}";
     }
 
     public class DoctorDetailsDto

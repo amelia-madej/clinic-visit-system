@@ -1,0 +1,243 @@
+﻿@page "/patient/visits/{VisitId:int}"
+@inject IVisitService VisitService
+@inject NavigationManager Nav
+
+<PageTitle>Visit Details</PageTitle>
+
+<RadzenStack Gap="12px">
+
+    <!-- HEADER -->
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 JustifyContent="JustifyContent.SpaceBetween"
+                 AlignItems="AlignItems.Center"
+                 class="visits-header">
+
+        <RadzenStack Orientation="Orientation.Horizontal"
+                     AlignItems="AlignItems.Center"
+                     Gap="10px">
+
+            <RadzenButton Icon="arrow_back"
+                          ButtonStyle="ButtonStyle.Light"
+                          Click="@(() => Nav.NavigateTo("/patient/visits"))" />
+
+            <RadzenText Text="Visit Details"
+                        TextStyle="TextStyle.H4"
+                        Style="margin:0; color: var(--rz-primary-dark);" />
+
+        </RadzenStack>
+
+        @if (_visit is not null)
+        {
+            <RadzenBadge Text="@_visit.Status"
+                         BadgeStyle="@GetBadgeStyle(_visit.Status)"
+                         Shade="Shade.Lighter" />
+        }
+
+    </RadzenStack>
+
+    @if (_loading)
+    {
+        <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+    }
+    else if (_visit is null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true">
+            Visit not found.
+        </RadzenAlert>
+    }
+    else
+    {
+        <!-- VISIT CARD -->
+        <RadzenCard Style="padding:20px; border-radius:12px;">
+
+            <RadzenRow Gap="16px">
+
+                <RadzenColumn Size="6">
+                    <RadzenText Text="Doctor" TextStyle="TextStyle.Caption" />
+                    <b>@_visit.Doctor?.User.FirstName @_visit.Doctor?.User.LastName</b>
+                    <div style="color:gray">@_visit.Doctor?.Specialization</div>
+                </RadzenColumn>
+
+                <RadzenColumn Size="6">
+                    <RadzenText Text="Patient" TextStyle="TextStyle.Caption" />
+                    <b>@_visit.Patient?.User.FirstName @_visit.Patient?.User.LastName</b>
+                    <div style="color:gray">@_visit.Patient?.PESEL</div>
+                </RadzenColumn>
+
+                <RadzenColumn Size="6">
+                    <RadzenText Text="Date & Time" TextStyle="TextStyle.Caption" />
+                    <b>@_visit.VisitDateTime.ToString("dd.MM.yyyy HH:mm")</b>
+                </RadzenColumn>
+
+                <RadzenColumn Size="6">
+                    <RadzenText Text="Visit Type" TextStyle="TextStyle.Caption" />
+                    <b>@_visit.VisitType</b>
+                </RadzenColumn>
+
+            </RadzenRow>
+
+        </RadzenCard>
+
+        <!-- MEDICAL RECORD -->
+        @if (_visit.MedicalRecord is not null)
+        {
+            <RadzenText Text="Medical Record"
+                        TextStyle="TextStyle.H5"
+                        Style="margin-top:10px; color: var(--rz-primary-dark);" />
+
+            <RadzenCard Style="padding:20px; border-radius:12px;">
+                <RadzenStack Gap="10px">
+
+                    <div>
+                        <RadzenText Text="Interview" TextStyle="TextStyle.Caption" />
+                        <div>@_visit.MedicalRecord.Interview</div>
+                    </div>
+
+                    <div>
+                        <RadzenText Text="Diagnosis" TextStyle="TextStyle.Caption" />
+                        <div>@_visit.MedicalRecord.Diagnosis</div>
+                    </div>
+
+                    <div>
+                        <RadzenText Text="Recommendations" TextStyle="TextStyle.Caption" />
+                        <div>@_visit.MedicalRecord.Recommendations</div>
+                    </div>
+
+                </RadzenStack>
+            </RadzenCard>
+
+            <!-- SICK LEAVE -->
+            @if (_visit.MedicalRecord.SickLeave is not null)
+            {
+                <RadzenText Text="Sick Leave"
+                            TextStyle="TextStyle.H5"
+                            Style="margin-top:10px; color: var(--rz-primary-dark);" />
+
+                <RadzenCard Style="padding:20px; border-radius:12px;">
+                    <RadzenStack Gap="10px">
+
+                        <div>
+                            <RadzenText Text="Period" TextStyle="TextStyle.Caption" />
+                            <div>
+                                @_visit.MedicalRecord.SickLeave.StartDate.ToString("dd.MM.yyyy")
+                                -
+                                @_visit.MedicalRecord.SickLeave.EndDate.ToString("dd.MM.yyyy")
+                            </div>
+                        </div>
+
+                        <div>
+                            <RadzenText Text="Reason" TextStyle="TextStyle.Caption" />
+                            <div>@_visit.MedicalRecord.SickLeave.Reason</div>
+                        </div>
+
+                    </RadzenStack>
+                </RadzenCard>
+            }
+
+            <!-- PRESCRIPTIONS -->
+            @if (_prescriptions.Any())
+            {
+                <RadzenText Text="Prescriptions"
+                            TextStyle="TextStyle.H5"
+                            Style="margin-top:10px; color: var(--rz-primary-dark);" />
+
+                <RadzenStack Gap="12px">
+
+                    @foreach (var rx in _prescriptions)
+                    {
+                        <RadzenCard Style="padding:16px; background:#f8f9fb; border-radius:10px;">
+
+                            <RadzenStack Gap="8px">
+
+                                <RadzenText Text="@($"Prescription #{rx.Id}")"
+                                            TextStyle="TextStyle.Body1"
+                                            Style="font-weight:600;" />
+                                <RadzenStack Orientation="Orientation.Horizontal"
+                                             JustifyContent="JustifyContent.Left"
+                                             AlignItems="AlignItems.Start">
+
+                                    <RadzenText Text="@($"Issued: {rx.CreatedAt:dd.MM.yyyy}")"
+                                                TextStyle="TextStyle.Caption"
+                                                Style="color: var(--rz-primary-dark);" />
+                                    @if (rx.ValidUntil is not null)
+                                    {
+                                        <RadzenText Text="@($"Valid until: {rx.ValidUntil:dd.MM.yyyy}")"
+                                                    TextStyle="TextStyle.Caption"
+                                                    Style="color: var(--rz-primary-dark);" />
+                                    }
+
+                                </RadzenStack>
+                                <RadzenDataGrid Data="@rx.Items"
+                                                TItem="PrescriptionItemDto"
+                                                AllowPaging="false"
+                                                AllowSorting="false"
+                                                AllowFiltering="false"
+                                                Style="margin-top:10px">
+
+                                    <Columns>
+
+                                        <RadzenDataGridColumn TItem="PrescriptionItemDto"
+                                                              Property="MedicationName"
+                                                              Title="Medication" />
+
+                                        <RadzenDataGridColumn TItem="PrescriptionItemDto"
+                                                              Property="Dosage"
+                                                              Title="Dosage" />
+
+                                        <RadzenDataGridColumn TItem="PrescriptionItemDto"
+                                                              Property="Quantity"
+                                                              Title="Quantity" />
+
+                                        <RadzenDataGridColumn TItem="PrescriptionItemDto"
+                                                              Property="Instructions"
+                                                              Title="Instructions" />
+
+                                    </Columns>
+
+                                </RadzenDataGrid>
+
+                            </RadzenStack>
+
+                        </RadzenCard>
+                    }
+
+                </RadzenStack>
+            }
+        }
+    }
+
+</RadzenStack>
+
+@code {
+    [Parameter] public int VisitId { get; set; }
+
+    private VisitDetailsDto? _visit;
+    private List<PrescriptionDetailsDto> _prescriptions = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _visit = await VisitService.GetByIdAsync(VisitId);
+        if (_visit?.MedicalRecord?.Prescriptions is not null)
+        {
+            var tasks = _visit.MedicalRecord.Prescriptions
+                .Select(p => VisitService.GetPrescriptionByIdAsync(p.Id));
+
+            var results = await Task.WhenAll(tasks);
+
+            _prescriptions = results
+                .Where(p => p is not null)
+                .Cast<PrescriptionDetailsDto>()
+                .ToList();
+        }
+        _loading = false;
+    }
+
+    private BadgeStyle GetBadgeStyle(string status) => status switch
+    {
+        "Completed" => BadgeStyle.Success,
+        "Cancelled" => BadgeStyle.Danger,
+        "Scheduled" => BadgeStyle.Info,
+        _ => BadgeStyle.Warning
+    };
+}

@@ -1,0 +1,304 @@
+﻿@page "/patient/visits"
+@inject IVisitService VisitService
+@inject HttpClient Http
+@inject AppStateService AppState
+@inject NavigationManager Nav
+
+<PageTitle>Wizyty</PageTitle>
+
+<RadzenStack Gap="10px" Style="width:100%">
+
+    <!-- HEADER -->
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 JustifyContent="JustifyContent.SpaceBetween"
+                 AlignItems="AlignItems.Center"
+                 class="visits-header">
+
+        <RadzenText Text="My Visits"
+                    TextStyle="TextStyle.H4"
+                    Style="margin:0; color: var(--rz-primary-dark);" />
+
+        <RadzenButton Text="Schedule a Visit"
+                      Icon="add"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Click="@OpenModal" />
+    </RadzenStack>
+
+    <!-- LOADING -->
+    @if (_loading)
+    {
+        <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+    }
+    else if (_visits.Count == 0)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Info"
+                     ShowIcon="true"
+                     Shade="Shade.Lighter">
+            No visits to display.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenDataGrid Data="@_visits"
+                        TItem="VisitListItemDto"
+                        AllowSorting="true"
+                        AllowPaging="true"
+                        PageSize="10"
+                        AllowFiltering="true"
+                        FilterMode="FilterMode.Advanced"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        class="rz-datatable">
+
+            <Columns>
+
+                <RadzenDataGridColumn TItem="VisitListItemDto"
+                                      Property="VisitDateTime"
+                                      Title="Date and time"
+                                      FormatString="{0:dd.MM.yyyy HH:mm}"
+                                      Width="180px" />
+
+                <RadzenDataGridColumn TItem="VisitListItemDto"
+                                      Property="VisitType"
+                                      Title="Visit Type" />
+
+                <RadzenDataGridColumn TItem="VisitListItemDto"
+                                      Property="Status"
+                                      Title="Status"
+                                      Width="130px">
+
+                    <Template Context="visit">
+                        <RadzenBadge Text="@visit.Status"
+                                     BadgeStyle="@GetBadgeStyle(visit.Status)"
+                                     Shade="Shade.Lighter" />
+                    </Template>
+
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="VisitListItemDto"
+                                      Title="Doctor">
+
+                    <Template Context="visit">
+                        <RadzenStack Gap="0">
+                            @if (visit.Doctor is not null)
+                            {
+                                <RadzenText Text="@($"{visit.Doctor.FirstName} {visit.Doctor.LastName}")"
+                                            TextStyle="TextStyle.Body1" />
+
+                                <RadzenText Text="@visit.Doctor.Specialization"
+                                            TextStyle="TextStyle.Caption"
+                                            Style="color:gray;" />
+                            }
+                        </RadzenStack>
+                    </Template>
+
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="VisitListItemDto"
+                                      Title="Details"
+                                      Width="120px"
+                                      Sortable="false"
+                                      Filterable="false">
+
+                    <Template Context="visit">
+                        <RadzenButton Icon="visibility"
+                                      ButtonStyle="ButtonStyle.Light"
+                                      Size="ButtonSize.Small"
+                                      Click="@(() => GoToDetails(visit.VisitId))" />
+                    </Template>
+
+                </RadzenDataGridColumn>
+
+            </Columns>
+        </RadzenDataGrid>
+    }
+
+</RadzenStack>
+
+<!-- MODAL -->
+<RadzenDialog />
+
+@if (_showModal)
+{
+    <div class="modal-backdrop" @onclick="CloseModal">
+
+        <div class="modal-box" @onclick:stopPropagation="true">
+
+            <RadzenStack Gap="10px" class="modal-header">
+
+                <RadzenText Text="Umów wizytę"
+                            TextStyle="TextStyle.H5"
+                            Style="margin:0; color: var(--rz-primary-dark)" />
+
+                <RadzenButton Icon="close"
+                              ButtonStyle="ButtonStyle.Light"
+                              Size="ButtonSize.Small"
+                              Click="@CloseModal" />
+
+            </RadzenStack>
+
+            <RadzenStack Gap="16px" class="modal-body">
+
+                <RadzenStack Gap="6px">
+                    <RadzenText Text="Doctor" TextStyle="TextStyle.Caption" />
+                    <RadzenDropDown Data="@_doctors"
+                                    TValue="int?"
+                                    @bind-Value="_form.DoctorId"
+                                    TextProperty="FullName"
+                                    ValueProperty="DoctorId"
+                                    Style="width:100%" />
+                </RadzenStack>
+
+                <RadzenStack Gap="6px">
+                    <RadzenText Text="Visit Type" TextStyle="TextStyle.Caption" />
+                    <RadzenDropDown Data="@_visitTypes"
+                                    TValue="string"
+                                    @bind-Value="_form.VisitType"
+                                    Style="width:100%" />
+                </RadzenStack>
+
+                <RadzenStack Gap="6px">
+                    <RadzenText Text="Date and time" TextStyle="TextStyle.Caption" />
+                    <RadzenDatePicker @bind-Value="_form.VisitDateTime"
+                                      ShowTime="true"
+                                      DateFormat="dd.MM.yyyy HH:mm"
+                                      Style="width:100%" />
+                </RadzenStack>
+
+                @if (_formError is not null)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Danger"
+                                 ShowIcon="true"
+                                 Shade="Shade.Lighter">
+                        @_formError
+                    </RadzenAlert>
+                }
+
+            </RadzenStack>
+
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         JustifyContent="JustifyContent.End"
+                         Gap="10px"
+                         class="modal-footer">
+
+                <RadzenButton Text="Cancel"
+                              ButtonStyle="ButtonStyle.Light"
+                              Click="@CloseModal" />
+
+                <RadzenButton Text="Set"
+                              Icon="check"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Click="@Submit"
+                              Disabled="@_submitting" />
+
+            </RadzenStack>
+
+        </div>
+    </div>
+}
+
+@code {
+    private List<VisitListItemDto> _visits = new();
+    private List<DoctorListItemDto> _doctors = new();
+    private bool _loading = true;
+    private bool _showModal = false;
+    private bool _submitting = false;
+    private string? _formError;
+
+    private readonly List<string> _statusOptions =
+        Enum.GetNames(typeof(VisitStatus)).ToList();
+
+    private readonly List<string> _visitTypes =
+        Enum.GetNames(typeof(VisitType)).ToList();
+
+    private VisitCreateFormModel _form = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AppState.CurrentPatient is null)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        _visits = await VisitService
+            .GetByPatientIdAsync(AppState.CurrentPatient.PatientId);
+
+        _doctors = await Http
+            .GetFromJsonAsync<List<DoctorListItemDto>>("api/Doctor")
+            ?? new();
+
+        _loading = false;
+    }
+
+    private void OpenModal()
+    {
+        _form = new VisitCreateFormModel
+        {
+            VisitDateTime = DateTime.Now.AddDays(1)
+        };
+
+        _formError = null;
+        _showModal = true;
+    }
+
+    private void CloseModal() => _showModal = false;
+
+    private void GoToDetails(int visitId)
+        => Nav.NavigateTo($"/patient/visits/{visitId}");
+
+    private async Task Submit()
+    {
+        if (_form.DoctorId is null)
+        {
+            _formError = "Select a doctor.";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(_form.VisitType))
+        {
+            _formError = "Select a visit type.";
+            return;
+        }
+
+        _submitting = true;
+
+        var dto = new VisitCreateDto
+        {
+            PatientId = AppState.CurrentPatient!.PatientId,
+            DoctorId = _form.DoctorId!.Value,
+            VisitDateTime = _form.VisitDateTime,
+            VisitType = _form.VisitType
+        };
+
+        var success = await VisitService.CreateAsync(dto);
+
+        if (success)
+        {
+            _visits = await VisitService
+                .GetByPatientIdAsync(AppState.CurrentPatient.PatientId);
+
+            CloseModal();
+        }
+        else
+        {
+            _formError = "Failed to schedule a visit. Please try again.";
+        }
+
+        _submitting = false;
+    }
+
+    private BadgeStyle GetBadgeStyle(string status) => status switch
+    {
+        "Completed" => BadgeStyle.Success,
+        "Cancelled" => BadgeStyle.Danger,
+        "Scheduled" => BadgeStyle.Info,
+        _ => BadgeStyle.Warning
+    };
+
+    private class VisitCreateFormModel
+    {
+        public int? DoctorId { get; set; }
+        public string VisitType { get; set; } = string.Empty;
+        public DateTime VisitDateTime { get; set; } = DateTime.Now.AddDays(1);
+    }
+}

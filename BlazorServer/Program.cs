@@ -20,9 +20,13 @@ builder.Services.AddMudServices();
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-// EF Core + SQLite
+var dbPath = Path.GetFullPath(
+    Path.Combine(builder.Environment.ContentRootPath, "..", "ClinicVisitSystem.db"));
+// rejestracja kontekstu bazy w kontenerze IoC
+// var sqliteConnectionString = "Data Source=Kiosk.WebAPI.Logger.db";
+var sqliteConnectionString = $"Data Source = {dbPath}";
 builder.Services.AddDbContext<ClinicDbContext>(options =>
-    options.UseSqlite(@"Data Source=ClinicVisitSystem.db"));
+    options.UseSqlite(sqliteConnectionString));
 
 // Validators
 builder.Services.AddScoped<IValidator<DoctorCreateDto>, DoctorCreateDtoValidator>();
