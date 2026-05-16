@@ -54,24 +54,39 @@
 
                 <RadzenColumn Size="6">
                     <RadzenText Text="Doctor" TextStyle="TextStyle.Caption" />
-                    <b>@_visit.Doctor?.User.FirstName @_visit.Doctor?.User.LastName</b>
-                    <div style="color:gray">@_visit.Doctor?.Specialization</div>
+                    <RadzenText Text="@($"{_visit.Doctor?.User.FirstName} {_visit.Doctor?.User.LastName}")"
+                                TextStyle="TextStyle.Body1"
+                                Style="font-weight:600; margin: 0" />
+                    <RadzenText Text="@_visit.Doctor?.Specialization" Style="color:gray;" />
                 </RadzenColumn>
 
                 <RadzenColumn Size="6">
-                    <RadzenText Text="Patient" TextStyle="TextStyle.Caption" />
-                    <b>@_visit.Patient?.User.FirstName @_visit.Patient?.User.LastName</b>
-                    <div style="color:gray">@_visit.Patient?.PESEL</div>
+                    <RadzenStack Gap="4px">
+                        <RadzenText Text="Patient" TextStyle="TextStyle.Caption" />
+                        <RadzenText Text="@($"{_visit.Patient?.User?.FirstName} {_visit.Patient?.User?.LastName}")"
+                                    TextStyle="TextStyle.Body1"
+                                    Style="font-weight:600; margin: 0" />
+                        <RadzenText Text="@_visit.Patient?.PESEL"
+                                    Style="color:gray;" />
+                    </RadzenStack>
                 </RadzenColumn>
 
                 <RadzenColumn Size="6">
-                    <RadzenText Text="Date & Time" TextStyle="TextStyle.Caption" />
-                    <b>@_visit.VisitDateTime.ToString("dd.MM.yyyy HH:mm")</b>
+                    <RadzenStack Gap="4px">
+                        <RadzenText Text="Date & Time" TextStyle="TextStyle.Caption" />
+                        <RadzenText Text="@_visit.VisitDateTime.ToString("dd.MM.yyyy HH:mm")"
+                                    TextStyle="TextStyle.Body1"
+                                    Style="font-weight:600; margin: 0" />
+                    </RadzenStack>
                 </RadzenColumn>
 
                 <RadzenColumn Size="6">
-                    <RadzenText Text="Visit Type" TextStyle="TextStyle.Caption" />
-                    <b>@_visit.VisitType</b>
+                    <RadzenStack Gap="4px">
+                        <RadzenText Text="Visit Type" TextStyle="TextStyle.Caption" />
+                        <RadzenText Text="@_visit.VisitType"
+                                    TextStyle="TextStyle.Body1"
+                                    Style="font-weight:600; margin: 0" />
+                    </RadzenStack>
                 </RadzenColumn>
 
             </RadzenRow>
