@@ -143,13 +143,15 @@
 
                 <RadzenStack Gap="12px">
 
-                    @foreach (var rx in _prescriptions)
+                    @foreach (var item in _prescriptions.Select((value, index) => new { value, index }))
                     {
+                        var rx = item.value;
+
                         <RadzenCard Style="padding:16px; background:#f8f9fb; border-radius:10px;">
 
                             <RadzenStack Gap="8px">
 
-                                <RadzenText Text="@($"Prescription #{rx.Id}")"
+                                <RadzenText Text="@($"Prescription #{item.index + 1}")"
                                             TextStyle="TextStyle.Body1"
                                             Style="font-weight:600;" />
                                 <RadzenStack Orientation="Orientation.Horizontal"

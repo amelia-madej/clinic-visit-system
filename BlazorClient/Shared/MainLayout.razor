@@ -1,9 +1,10 @@
 ﻿@inherits LayoutComponentBase
 @inject AppStateService AppState
 @inject NavigationManager Nav
+@inject NotificationService NotificationService
 
 <RadzenLayout Style="height:100vh">
-
+    <RadzenNotification />
     <!-- HEADER -->
     <RadzenHeader>
         <RadzenStack Orientation="Orientation.Horizontal"

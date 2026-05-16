@@ -1,0 +1,176 @@
+﻿@page "/patient/prescriptions"
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<PageTitle>Prescriptions</PageTitle>
+
+<RadzenStack Gap="12px">
+
+    <!-- HEADER -->
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 JustifyContent="JustifyContent.SpaceBetween"
+                 AlignItems="AlignItems.Center"
+                 class="visits-header">
+
+        <RadzenText Text="My Prescriptions"
+                    TextStyle="TextStyle.H4"
+                    Style="margin:0; color: var(--rz-primary-dark); font-weight:600;" />
+
+    </RadzenStack>
+
+    @if (_loading)
+    {
+        <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+    }
+    else if (_prescriptions.Count == 0)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Info"
+                     ShowIcon="true"
+                     Shade="Shade.Lighter">
+            No prescriptions found.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenDataGrid Data="@_prescriptions"
+                        TItem="PrescriptionDetailsDto"
+                        AllowPaging="true"
+                        AllowSorting="true"
+                        AllowFiltering="true"
+                        FilterMode="FilterMode.Advanced"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        PageSize="10"                        
+                        class="rz-datatable">
+
+            <Columns>
+
+                <RadzenDataGridColumn TItem="PrescriptionDetailsDto"
+                                      Property="Id"
+                                      Title="ID"
+                                      Width="140px" />
+
+                <RadzenDataGridColumn TItem="PrescriptionDetailsDto"
+                                      Property="CreatedAt"
+                                      Title="Issued"
+                                      FormatString="{0:dd.MM.yyyy}"
+                                      Width="160px" />
+
+                <RadzenDataGridColumn TItem="PrescriptionDetailsDto"
+                                      Property="ValidUntil"
+                                      Title="Valid Until"
+                                      FormatString="{0:dd.MM.yyyy}"
+                                      Width="160px" />
+
+                <RadzenDataGridColumn TItem="PrescriptionDetailsDto"
+                                      Title="Status"
+                                      Width="140px">
+
+                    <Template Context="rx">
+                        <RadzenBadge Text="@GetStatus(rx)"
+                                     BadgeStyle="@GetBadgeStyle(rx)"
+                                     Shade="Shade.Lighter" />
+                    </Template>
+
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="PrescriptionDetailsDto"
+                                      Title="Items">
+
+                    <Template Context="rx">
+
+                        <RadzenDataGrid Data="@rx.Items"
+                                        TItem="PrescriptionItemDto"
+                                        AllowPaging="false"
+                                        AllowSorting="false"
+                                        AllowFiltering="false">
+
+                            <Columns>
+
+                                <RadzenDataGridColumn TItem="PrescriptionItemDto"
+                                                      Property="MedicationName"
+                                                      Title="Medication" />
+
+                                <RadzenDataGridColumn TItem="PrescriptionItemDto"
+                                                      Property="Dosage"
+                                                      Title="Dosage"
+                                                      Width="140px" />
+
+                                <RadzenDataGridColumn TItem="PrescriptionItemDto"
+                                                      Property="Quantity"
+                                                      Title="Qty"
+                                                      Width="90px" />
+
+                                <RadzenDataGridColumn TItem="PrescriptionItemDto"
+                                                      Property="Instructions"
+                                                      Title="Instructions" />
+
+                            </Columns>
+
+                        </RadzenDataGrid>
+
+                    </Template>
+
+                </RadzenDataGridColumn>
+
+            </Columns>
+
+        </RadzenDataGrid>
+    }
+
+</RadzenStack>
+
+@code {
+
+    private List<PrescriptionDetailsDto> _prescriptions = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var list = await Http.GetFromJsonAsync<List<PrescriptionListItemDto>>(
+                "api/prescription");
+
+            if (list is not null)
+            {
+                var tasks = list.Select(p =>
+                    Http.GetFromJsonAsync<PrescriptionDetailsDto>(
+                        $"api/prescription/{p.Id}"));
+
+                var results = await Task.WhenAll(tasks);
+
+                _prescriptions = results
+                    .Where(x => x is not null)
+                    .Cast<PrescriptionDetailsDto>()
+                    .OrderBy(x => x.Id)
+                    .ToList();
+            }
+        }
+        catch
+        {
+            _prescriptions = new();
+        }
+
+        _loading = false;
+    }
+
+    private string GetStatus(PrescriptionDetailsDto rx)
+    {
+        if (rx.ValidUntil is null)
+            return "Active";
+
+        return rx.ValidUntil.Value.Date < DateTime.Now.Date
+            ? "Expired"
+            : "Active";
+    }
+
+    private BadgeStyle GetBadgeStyle(PrescriptionDetailsDto rx)
+    {
+        if (rx.ValidUntil is null)
+            return BadgeStyle.Success;
+
+        return rx.ValidUntil.Value.Date < DateTime.Now.Date
+            ? BadgeStyle.Danger
+            : BadgeStyle.Success;
+    }
+}

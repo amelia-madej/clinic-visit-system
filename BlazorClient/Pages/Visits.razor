@@ -3,6 +3,7 @@
 @inject HttpClient Http
 @inject AppStateService AppState
 @inject NavigationManager Nav
+@inject NotificationService NotificationService
 
 <PageTitle>Wizyty</PageTitle>
 
@@ -123,9 +124,12 @@
 
         <div class="modal-box" @onclick:stopPropagation="true">
 
-            <RadzenStack Gap="10px" class="modal-header">
+            <RadzenStack Gap="10px" class="modal-header"
+                         Orientation="Orientation.Horizontal"
+                         JustifyContent="JustifyContent.SpaceBetween"
+                         AlignItems="AlignItems.Center">
 
-                <RadzenText Text="Umów wizytę"
+                <RadzenText Text="Schedule a visit"
                             TextStyle="TextStyle.H5"
                             Style="margin:0; color: var(--rz-primary-dark)" />
 
@@ -276,11 +280,14 @@
         {
             _visits = await VisitService
                 .GetByPatientIdAsync(AppState.CurrentPatient.PatientId);
+            NotificationService.Notify(NotificationSeverity.Success,"Success","Visit scheduled successfully.",4000);
 
             CloseModal();
         }
         else
         {
+            NotificationService.Notify(NotificationSeverity.Error,"Error","Failed to schedule visit.",4000);
+
             _formError = "Failed to schedule a visit. Please try again.";
         }
 
