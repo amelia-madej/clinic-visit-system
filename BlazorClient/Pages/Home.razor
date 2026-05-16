@@ -1,0 +1,218 @@
+﻿@page "/patient/home"
+@inject IVisitService VisitService
+@inject AppStateService AppState
+@inject NavigationManager Nav
+@using ApexCharts
+
+<PageTitle>Dashboard</PageTitle>
+
+@if (_loading)
+{
+    <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+}
+else
+{
+    <RadzenStack Gap="24px">
+
+        <!-- POWITANIE -->
+        <RadzenStack Gap="4px">
+            <RadzenText TextStyle="TextStyle.H4"
+                        Style="color: var(--rz-primary-dark); margin:0">
+                Hello, @AppState.CurrentPatient?.FirstName!
+            </RadzenText>
+            <RadzenText TextStyle="TextStyle.Caption"
+                        Style="color:gray; margin:0">
+                @DateTime.Now.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("en-EN"))
+            </RadzenText>
+        </RadzenStack>
+
+        <!-- KARTY STATYSTYK -->
+        <RadzenRow Gap="16px">
+            <RadzenColumn Size="12" SizeMD="3">
+                <RadzenCard Style="border-left: 4px solid #748cab;">
+                    <RadzenStack Gap="8px">
+                        <RadzenText TextStyle="TextStyle.Caption" Style="color:gray; margin:0">All visits</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H3" Style="color:#0b2545; margin:0; font-weight:700">@_visits.Count</RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="3">
+                <RadzenCard Style="border-left: 4px solid #26a269;">
+                    <RadzenStack Gap="8px">
+                        <RadzenText TextStyle="TextStyle.Caption" Style="color:gray; margin:0">Completed</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H3" Style="color:#0b2545; margin:0; font-weight:700">@_visits.Count(v => v.Status == "Completed")</RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="3">
+                <RadzenCard Style="border-left: 4px solid #134074;">
+                    <RadzenStack Gap="8px">
+                        <RadzenText TextStyle="TextStyle.Caption" Style="color:gray; margin:0">Scheduled</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H3" Style="color:#0b2545; margin:0; font-weight:700">@_visits.Count(v => v.Status == "Scheduled")</RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="3">
+                <RadzenCard Style="border-left: 4px solid #e53935;">
+                    <RadzenStack Gap="8px">
+                        <RadzenText TextStyle="TextStyle.Caption" Style="color:gray; margin:0">Cancelled</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H3" Style="color:#0b2545; margin:0; font-weight:700">@_visits.Count(v => v.Status == "Cancelled")</RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
+
+        <!-- WYKRES + NADCHODZĄCE -->
+        <RadzenRow Gap="20px">
+
+            <!-- WYKRES -->
+            <RadzenColumn Size="12" SizeMD="6">
+                <RadzenCard>
+                    <RadzenText TextStyle="TextStyle.Subtitle1"
+                                Style="color:#0b2545; font-weight:600; margin:0 0 16px;">
+                        Visits by status
+                    </RadzenText>
+                    @if (_chartPoints.Any())
+                    {
+                        <ApexChart TItem="ChartPoint"
+                                   Options="_chartOptions"
+                                   Height="260">
+                            <ApexPointSeries TItem="ChartPoint"
+                                             Items="_chartPoints"
+                                             SeriesType="SeriesType.Donut"
+                                             XValue="@(p => p.Label)"
+                                             YValue="@(p => p.Value)" />
+                        </ApexChart>
+                    }
+                    else
+                    {
+                        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Lighter" ShowIcon="true">
+                            No visits.
+                        </RadzenAlert>
+                    }
+                </RadzenCard>
+            </RadzenColumn>
+
+            <!-- NADCHODZĄCE WIZYTY -->
+            <RadzenColumn Size="12" SizeMD="6">
+                <RadzenCard>
+                    <RadzenStack Gap="12px">
+                        <RadzenText TextStyle="TextStyle.Subtitle1"
+                                    Style="color:#0b2545; font-weight:600; margin:0;">
+                            Upcoming visits
+                        </RadzenText>
+
+                        @if (_upcoming.Count == 0)
+                        {
+                            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Lighter" ShowIcon="true">
+                                No upcoming appointments.
+                            </RadzenAlert>
+                        }
+                        else
+                        {
+                            @foreach (var visit in _upcoming)
+                            {
+                                <RadzenCard class="upcoming-item"
+                                            @onclick="@(() => Nav.NavigateTo($"/patient/visits/{visit.VisitId}"))">
+                                    <RadzenStack Orientation="Radzen.Orientation.Horizontal"
+                                                 AlignItems="AlignItems.Center"
+                                                 Gap="14px">
+                                        <div class="upcoming-date-badge">
+                                            <span class="upcoming-day">@visit.VisitDateTime.ToString("dd")</span>
+                                            <span class="upcoming-month">@visit.VisitDateTime.ToString("MMM", new System.Globalization.CultureInfo("en-EN"))</span>
+                                        </div>
+                                        <RadzenStack Gap="2px" Style="flex:1">
+                                            <RadzenText TextStyle="TextStyle.Body1"
+                                                        Style="font-weight:600; color:#0b2545; margin:0">
+                                                @visit.VisitType
+                                            </RadzenText>
+                                            @if (visit.Doctor is not null)
+                                            {
+                                                <RadzenText TextStyle="TextStyle.Caption"
+                                                            Style="color:gray; margin:0">
+                                                    dr @visit.Doctor.LastName · @visit.VisitDateTime.ToString("HH:mm")
+                                                </RadzenText>
+                                            }
+                                        </RadzenStack>
+                                        <RadzenIcon Icon="chevron_right" Style="color:#748cab;" />
+                                    </RadzenStack>
+                                </RadzenCard>
+                            }
+                        }
+
+                        <RadzenButton Text="Umów wizytę"
+                                      Icon="add"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Size="ButtonSize.Small"
+                                      Style="align-self:flex-start"
+                                      Click="@(() => Nav.NavigateTo("/patient/visits"))" />
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+
+        </RadzenRow>
+    </RadzenStack>
+}
+
+@code {
+    private List<VisitListItemDto> _visits = new();
+    private List<VisitListItemDto> _upcoming = new();
+    private bool _loading = true;
+
+    private List<ChartPoint> _chartPoints = new();
+    private ApexChartOptions<ChartPoint> _chartOptions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AppState.CurrentPatient is null)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        _visits = await VisitService.GetByPatientIdAsync(AppState.CurrentPatient.PatientId);
+
+        _upcoming = _visits
+            .Where(v => v.VisitDateTime > DateTime.Now && v.Status == "Scheduled")
+            .OrderBy(v => v.VisitDateTime)
+            .Take(5)
+            .ToList();
+
+        var completed = _visits.Count(v => v.Status == "Completed");
+        var scheduled = _visits.Count(v => v.Status == "Scheduled");
+        var cancelled = _visits.Count(v => v.Status == "Cancelled");
+
+        _chartPoints = new List<ChartPoint>
+        {
+            new("Completed",  completed),
+            new("Scheduled", scheduled),
+            new("Cancelled",   cancelled)
+        }.Where(p => p.Value > 0).ToList();
+
+        _chartOptions = new ApexChartOptions<ChartPoint>
+        {
+            Colors = new List<string> { "#26a269", "#134074", "#e53935"},
+            Legend = new ApexCharts.Legend
+            {
+                Position = ApexCharts.LegendPosition.Bottom,
+                FontSize = "13px",
+            },
+            Stroke = new Stroke { Width = 0 },
+            Tooltip = new ApexCharts.Tooltip { Enabled = true },
+            PlotOptions = new PlotOptions
+            {
+                Pie = new PlotOptionsPie
+                {
+                    Donut = new PlotOptionsDonut
+                    {
+                        Size = "65%",
+                    }
+                }
+            }
+        };
+
+        _loading = false;
+    }
+
+    private record ChartPoint(string Label, decimal Value);
+}
