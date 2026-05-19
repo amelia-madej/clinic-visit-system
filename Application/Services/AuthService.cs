@@ -1,11 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Domain.Contracts;
+using FluentValidation;
 using SharedKernel.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Services
 {
@@ -13,17 +9,21 @@ namespace Application.Services
     {
         private readonly IClinicUnitOfWork _uow;
         private readonly IMapper _mapper;
+        private readonly IValidator<LoginDto> _loginValidator;
 
-        public AuthService(IClinicUnitOfWork uow, IMapper mapper)
+        public AuthService(IClinicUnitOfWork uow, IMapper mapper, IValidator<LoginDto> loginValidator)
         {
             _uow = uow;
             _mapper = mapper;
+            _loginValidator = loginValidator;
         }
 
         public AuthResponseDto Login(LoginDto dto)
         {
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto));
+
+            _loginValidator.ValidateAndThrow(dto);
 
             var user = _uow.UserRepository.GetUserByEmail(dto.Email);
 
@@ -37,8 +37,14 @@ namespace Application.Services
             return new AuthResponseDto
             {
                 UserId = user.UserId,
+                PatientId = user.Patient?.PatientId ?? _uow.PatientRepository.GetPatientByEmail(user.Email)?.PatientId,
+                DoctorId = user.Doctor?.DoctorId ?? _uow.DoctorRepository.GetDoctorByEmail(user.Email)?.DoctorId,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 FullName = $"{user.FirstName} {user.LastName}",
                 Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                PhotoDataUrl = user.PhotoDataUrl,
                 Role = user.Role
             };
         }

@@ -1,6 +1,7 @@
 using Application.Mapping;
 using Application.Services;
 using Application.Validators;
+using ApexCharts;
 using Domain.Contracts;
 using FluentValidation;
 using Infrastructure;
@@ -16,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
+builder.Services.AddApexCharts();
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -44,6 +46,8 @@ builder.Services.AddScoped<IValidator<SickLeaveUpdateDto>, SickLeaveUpdateDtoVal
 builder.Services.AddScoped<IValidator<SickLeaveCompleteDto>, SickLeaveCompleteDtoValidator>();
 builder.Services.AddScoped<IValidator<CreateUserDto>, CreateUserValidator>();
 builder.Services.AddScoped<IValidator<UpdateUserDto>, UpdateUserValidator>();
+builder.Services.AddScoped<IValidator<UpdateUserProfileDto>, UpdateUserProfileValidator>();
+builder.Services.AddScoped<IValidator<LoginDto>, LoginValidator>();
 
 // Repositories
 builder.Services.AddScoped<IClinicUnitOfWork, ClinicUnitOfWork>();
@@ -68,6 +72,7 @@ builder.Services.AddScoped<IMedicationService, MedicationService>();
 builder.Services.AddScoped<IMedicationImportService, MedicationImportService>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IVisitService, VisitService>();
 builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
 builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();

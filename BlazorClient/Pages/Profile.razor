@@ -1,0 +1,197 @@
+@page "/patient/profile"
+@inject IUserClientService UserService
+@inject AppStateService AppState
+@inject NavigationManager Nav
+@inject NotificationService NotificationService
+
+<PageTitle>My Profile</PageTitle>
+
+@if (_loading)
+{
+    <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+}
+else if (_user is not null)
+{
+    <RadzenStack Gap="18px">
+        <RadzenText Text="My Profile"
+                    TextStyle="TextStyle.H4"
+                    Style="margin:0; color: var(--rz-primary-dark); font-weight:600;" />
+
+        <RadzenRow Gap="18px">
+            <RadzenColumn Size="12" SizeMD="4">
+                <RadzenCard>
+                    <RadzenStack AlignItems="AlignItems.Center" Gap="14px">
+                        @if (string.IsNullOrWhiteSpace(_user.PhotoDataUrl))
+                        {
+                            <div style="width:168px;height:168px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#748cab;background:#eef3fa;border:3px solid #d8e2f1;">
+                                <RadzenIcon Icon="person" Style="font-size:64px;" />
+                            </div>
+                        }
+                        else
+                        {
+                            <img style="width:168px;height:168px;border-radius:50%;object-fit:cover;border:3px solid #d8e2f1;" src="@_user.PhotoDataUrl" alt="Profile photo" />
+                        }
+
+                        <label class="profile-upload-button">
+                            <RadzenIcon Icon="photo_camera" Style="font-size:18px;" />
+                            <span>Choose photo</span>
+                            <InputFile OnChange="UploadPhoto" accept="image/*" style="display:none" />
+                        </label>
+
+                        <RadzenButton Text="Remove photo"
+                                      Icon="delete"
+                                      ButtonStyle="ButtonStyle.Danger"
+                                      Variant="Variant.Outlined"
+                                      Disabled="@string.IsNullOrWhiteSpace(_user.PhotoDataUrl)"
+                                      Click="@RemovePhoto" />
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+
+            <RadzenColumn Size="12" SizeMD="8">
+                <RadzenCard>
+                    <RadzenTemplateForm TItem="UpdateUserProfileDto" Data="@_form" Submit="@Save">
+                        <RadzenStack Gap="14px">
+                            <RadzenRow Gap="12px">
+                                <RadzenColumn Size="12" SizeMD="6">
+                                    <RadzenFormField Text="First name" Style="width:100%;">
+                                        <RadzenTextBox Name="FirstName" @bind-Value="_form.FirstName" Style="width:100%;" />
+                                    </RadzenFormField>
+                                    <RadzenRequiredValidator Component="FirstName" Text="First name is required" />
+                                </RadzenColumn>
+                                <RadzenColumn Size="12" SizeMD="6">
+                                    <RadzenFormField Text="Last name" Style="width:100%;">
+                                        <RadzenTextBox Name="LastName" @bind-Value="_form.LastName" Style="width:100%;" />
+                                    </RadzenFormField>
+                                    <RadzenRequiredValidator Component="LastName" Text="Last name is required" />
+                                </RadzenColumn>
+                            </RadzenRow>
+
+                            <RadzenFormField Text="Email" Style="width:100%;">
+                                <RadzenTextBox Name="Email" @bind-Value="_form.Email" Style="width:100%;" />
+                            </RadzenFormField>
+                            <RadzenRequiredValidator Component="Email" Text="Email is required" />
+                            <RadzenEmailValidator Component="Email" Text="Invalid email address" />
+
+                            <RadzenFormField Text="Phone number" Style="width:100%;">
+                                <RadzenTextBox Name="PhoneNumber" @bind-Value="_form.PhoneNumber" Style="width:100%;" />
+                            </RadzenFormField>
+                            <RadzenRequiredValidator Component="PhoneNumber" Text="Phone number is required" />
+                            <RadzenRegexValidator Component="PhoneNumber" Pattern="^\d{9}$" Text="Enter 9 digits" />
+
+                            <RadzenButton Text="Save changes"
+                                          Icon="save"
+                                          ButtonType="ButtonType.Submit"
+                                          ButtonStyle="ButtonStyle.Primary"
+                                          Style="align-self:flex-start;"
+                                          Disabled="_saving" />
+                        </RadzenStack>
+                    </RadzenTemplateForm>
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenStack>
+}
+
+@code {
+    private UserDto? _user;
+    private UpdateUserProfileDto _form = new();
+    private bool _loading = true;
+    private bool _saving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AppState.CurrentUser is null)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        await LoadUser();
+    }
+
+    private async Task LoadUser()
+    {
+        _user = await UserService.GetByIdAsync(AppState.CurrentUser!.UserId);
+
+        if (_user is not null)
+        {
+            AppState.RefreshCurrentUser(_user);
+
+            _form = new UpdateUserProfileDto
+            {
+                UserId = _user.UserId,
+                FirstName = _user.FirstName,
+                LastName = _user.LastName,
+                Email = _user.Email,
+                PhoneNumber = _user.PhoneNumber
+            };
+        }
+
+        _loading = false;
+    }
+
+    private async Task Save()
+    {
+        _saving = true;
+
+        var success = await UserService.UpdateProfileAsync(_form);
+        NotificationService.Notify(
+            success ? NotificationSeverity.Success : NotificationSeverity.Error,
+            success ? "Saved" : "Error",
+            success ? "Profile updated." : "Could not update profile.",
+            4000);
+
+        if (success)
+            await LoadUser();
+
+        _saving = false;
+    }
+
+    private async Task UploadPhoto(InputFileChangeEventArgs args)
+    {
+        if (_user is null)
+            return;
+
+        var file = args.File;
+        if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Invalid file", "Select an image file.", 4000);
+            return;
+        }
+
+        await using var stream = file.OpenReadStream(1024 * 1024);
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+
+        var dataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(memory.ToArray())}";
+        var success = await UserService.UpdatePhotoAsync(new UpdateUserPhotoDto { UserId = _user.UserId, PhotoDataUrl = dataUrl });
+
+        if (success)
+            await LoadUser();
+
+        NotificationService.Notify(
+            success ? NotificationSeverity.Success : NotificationSeverity.Error,
+            success ? "Photo saved" : "Error",
+            success ? "Profile photo updated." : "Could not update photo.",
+            4000);
+    }
+
+    private async Task RemovePhoto()
+    {
+        if (_user is null)
+            return;
+
+        var success = await UserService.DeletePhotoAsync(_user.UserId);
+
+        if (success)
+            await LoadUser();
+
+        NotificationService.Notify(
+            success ? NotificationSeverity.Success : NotificationSeverity.Error,
+            success ? "Photo removed" : "Error",
+            success ? "Profile photo removed." : "Could not remove photo.",
+            4000);
+    }
+}
+

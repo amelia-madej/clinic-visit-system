@@ -1,0 +1,195 @@
+@page "/profile"
+@inject IUserService UserService
+@inject AppStateService AppState
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<PageTitle>My Profile</PageTitle>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (_user is not null)
+{
+    <MudStack Spacing="3">
+        <MudText Typo="Typo.h4">My Profile</MudText>
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" md="4">
+                <MudPaper Class="pa-4">
+                    <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                        @if (string.IsNullOrWhiteSpace(_user.PhotoDataUrl))
+                        {
+                            <MudAvatar Size="Size.Large" Color="Color.Primary">
+                                <MudIcon Icon="@Icons.Material.Filled.Person" />
+                            </MudAvatar>
+                        }
+                        else
+                        {
+                            <img style="width:168px;height:168px;border-radius:50%;object-fit:cover;border:3px solid #d8e2f1;" src="@_user.PhotoDataUrl" alt="Profile photo" />
+                        }
+
+                        <label class="mud-button-root mud-button mud-button-filled mud-button-filled-primary mud-button-filled-size-medium mud-ripple profile-upload-button">
+                            <MudIcon Icon="@Icons.Material.Filled.PhotoCamera" Size="Size.Small" Class="mr-2" />
+                            Choose photo
+                            <InputFile OnChange="UploadPhoto" accept="image/*" style="display:none" />
+                        </label>
+
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Error"
+                                   StartIcon="@Icons.Material.Filled.Delete"
+                                   Disabled="@string.IsNullOrWhiteSpace(_user.PhotoDataUrl)"
+                                   OnClick="RemovePhoto">
+                            Remove photo
+                        </MudButton>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="8">
+                <MudPaper Class="pa-4">
+                    <EditForm Model="_form" OnValidSubmit="Save">
+                        <DataAnnotationsValidator />
+                        <MudStack Spacing="3">
+                            <MudGrid Spacing="2">
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="_form.FirstName" Label="First name" Required="true" />
+                                </MudItem>
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="_form.LastName" Label="Last name" Required="true" />
+                                </MudItem>
+                            </MudGrid>
+
+                            <MudTextField @bind-Value="_form.Email"
+                                          Label="Email"
+                                          Required="true"
+                                          InputType="InputType.Email" />
+
+                            <MudTextField @bind-Value="_form.PhoneNumber"
+                                          Label="Phone number"
+                                          Required="true" />
+
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Save"
+                                       ButtonType="ButtonType.Submit"
+                                       Disabled="_saving">
+                                Save changes
+                            </MudButton>
+                        </MudStack>
+                    </EditForm>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudStack>
+}
+
+@code {
+    private UserDto? _user;
+    private UpdateUserProfileDto _form = new();
+    private bool _loading = true;
+    private bool _saving;
+
+    protected override void OnInitialized()
+    {
+        if (AppState.CurrentUser is null)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        LoadUser();
+    }
+
+    private void LoadUser()
+    {
+        _user = UserService.GetById(AppState.CurrentUser!.UserId);
+
+        if (_user is not null)
+        {
+            AppState.RefreshCurrentUser(_user);
+
+            _form = new UpdateUserProfileDto
+            {
+                UserId = _user.UserId,
+                FirstName = _user.FirstName,
+                LastName = _user.LastName,
+                Email = _user.Email,
+                PhoneNumber = _user.PhoneNumber
+            };
+        }
+
+        _loading = false;
+    }
+
+    private void Save()
+    {
+        _saving = true;
+
+        try
+        {
+            UserService.UpdateProfile(_form);
+            LoadUser();
+            Snackbar.Add("Profile updated.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task UploadPhoto(InputFileChangeEventArgs args)
+    {
+        if (_user is null)
+            return;
+
+        var file = args.File;
+        if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            Snackbar.Add("Select an image file.", Severity.Error);
+            return;
+        }
+
+        await using var stream = file.OpenReadStream(1024 * 1024);
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+
+        try
+        {
+            UserService.UpdatePhoto(new UpdateUserPhotoDto
+            {
+                UserId = _user.UserId,
+                PhotoDataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(memory.ToArray())}"
+            });
+
+            LoadUser();
+            Snackbar.Add("Profile photo updated.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+    }
+
+    private void RemovePhoto()
+    {
+        if (_user is null)
+            return;
+
+        try
+        {
+            UserService.DeletePhoto(_user.UserId);
+            LoadUser();
+            Snackbar.Add("Profile photo removed.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+    }
+}

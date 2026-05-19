@@ -1,0 +1,268 @@
+@page "/home"
+@using ApexCharts
+@inject IVisitService VisitService
+@inject AppStateService AppState
+@inject NavigationManager Nav
+
+<PageTitle>Doctor Dashboard</PageTitle>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="MudBlazor.Color.Primary" />
+}
+else
+{
+    <MudStack Spacing="3">
+        <MudStack Row="true" AlignItems="AlignItems.Center">
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h4">Home</MudText>
+                <MudText Typo="Typo.body2" Color="MudBlazor.Color.Secondary">
+                    Your appointments overview for @DateTime.Today.ToString("dd.MM.yyyy")
+                </MudText>
+            </MudStack>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled"
+                       Color="MudBlazor.Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Href="/visits">
+                Manage visits
+            </MudButton>
+        </MudStack>
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">All visits</MudText>
+                        <MudText Typo="Typo.h4">@_visits.Count</MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Today</MudText>
+                        <MudText Typo="Typo.h4">@_todayVisits</MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Upcoming</MudText>
+                        <MudText Typo="Typo.h4">@_upcomingVisits</MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Patients</MudText>
+                        <MudText Typo="Typo.h4">@_uniquePatients</MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" md="5">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudText Typo="Typo.h6" Class="mb-2">Visits by status</MudText>
+                    @if (_statusPoints.Any())
+                    {
+                        <ApexChart TItem="ChartPoint" Options="_statusOptions" Height="300">
+                            <ApexPointSeries TItem="ChartPoint"
+                                             Items="_statusPoints"
+                                             SeriesType="SeriesType.Donut"
+                                             XValue="@(p => p.Label)"
+                                             YValue="@(p => p.Value)" />
+                        </ApexChart>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info">No visits to display.</MudAlert>
+                    }
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="7">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudText Typo="Typo.h6" Class="mb-2">Next 7 days</MudText>
+                    <ApexChart TItem="ChartPoint" Options="_weekOptions" Height="300">
+                        <ApexPointSeries TItem="ChartPoint"
+                                         Items="_weekPoints"
+                                         Name="Scheduled visits"
+                                         SeriesType="SeriesType.Bar"
+                                         XValue="@(p => p.Label)"
+                                         YValue="@(p => p.Value)" />
+                    </ApexChart>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Class="pa-4" Elevation="1">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+                <MudText Typo="Typo.h6">Upcoming appointments</MudText>
+                <MudSpacer />
+                <MudChip T="string" Color="MudBlazor.Color.Info" Size="MudBlazor.Size.Small">@_upcoming.Count items</MudChip>
+            </MudStack>
+
+            @if (_upcoming.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info">No upcoming appointments.</MudAlert>
+            }
+            else
+            {
+                <MudTable Items="_upcoming" Dense="true" Hover="true" Elevation="0">
+                    <HeaderContent>
+                        <MudTh>Date</MudTh>
+                        <MudTh>Patient</MudTh>
+                        <MudTh>Type</MudTh>
+                        <MudTh>Status</MudTh>
+                        <MudTh></MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Date">@context.VisitDateTime.ToString("dd.MM.yyyy HH:mm")</MudTd>
+                        <MudTd DataLabel="Patient">@context.Patient?.FirstName @context.Patient?.LastName</MudTd>
+                        <MudTd DataLabel="Type">@context.VisitType</MudTd>
+                        <MudTd DataLabel="Status">
+                            <MudChip T="string" Color="@StatusColor(context.Status)" Size="MudBlazor.Size.Small">
+                                @context.Status
+                            </MudChip>
+                        </MudTd>
+                        <MudTd>
+                            <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                           Size="MudBlazor.Size.Small"
+                                           Href="@($"/visits/{context.VisitId}")" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </MudPaper>
+    </MudStack>
+}
+
+@code {
+    private List<VisitListItemDto> _visits = new();
+    private List<VisitListItemDto> _upcoming = new();
+    private List<ChartPoint> _statusPoints = new();
+    private List<ChartPoint> _weekPoints = new();
+    private ApexChartOptions<ChartPoint> _statusOptions = new();
+    private ApexChartOptions<ChartPoint> _weekOptions = new();
+    private bool _loading = true;
+    private int _todayVisits;
+    private int _upcomingVisits;
+    private int _uniquePatients;
+
+    protected override void OnInitialized()
+    {
+        if (AppState.CurrentDoctor is null)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        LoadDashboard();
+    }
+
+    private void LoadDashboard()
+    {
+        var today = DateTime.Today;
+        var doctorId = AppState.CurrentDoctor!.DoctorId;
+
+        _visits = VisitService.GetByDoctorId(doctorId)
+            .OrderBy(v => v.VisitDateTime)
+            .ToList();
+
+        _todayVisits = _visits.Count(v => v.VisitDateTime.Date == today);
+        _upcomingVisits = _visits.Count(v => v.VisitDateTime >= DateTime.Now && v.Status == nameof(VisitStatus.Scheduled));
+        _uniquePatients = _visits
+            .Where(v => v.Patient is not null)
+            .Select(v => v.Patient!.PatientId)
+            .Distinct()
+            .Count();
+
+        _upcoming = _visits
+            .Where(v => v.VisitDateTime >= DateTime.Now && v.Status == nameof(VisitStatus.Scheduled))
+            .OrderBy(v => v.VisitDateTime)
+            .Take(8)
+            .ToList();
+
+        _statusPoints = _visits
+            .GroupBy(v => v.Status)
+            .Select(g => new ChartPoint(g.Key, g.Count()))
+            .OrderByDescending(p => p.Value)
+            .ToList();
+
+        _weekPoints = Enumerable.Range(0, 7)
+            .Select(offset => today.AddDays(offset))
+            .Select(day => new ChartPoint(
+                day.ToString("dd.MM"),
+                _visits.Count(v => v.VisitDateTime.Date == day && v.Status == nameof(VisitStatus.Scheduled))))
+            .ToList();
+
+        ConfigureCharts();
+        _loading = false;
+    }
+
+    private void ConfigureCharts()
+    {
+        _statusOptions = new ApexChartOptions<ChartPoint>
+        {
+            Colors = new List<string> { "#2E7D32", "#1976D2", "#D32F2F", "#ED6C02" },
+            Legend = new Legend
+            {
+                Position = LegendPosition.Bottom,
+                FontSize = "13px"
+            },
+            Stroke = new Stroke { Width = 0 },
+            Tooltip = new Tooltip { Enabled = true },
+            PlotOptions = new PlotOptions
+            {
+                Pie = new PlotOptionsPie
+                {
+                    Donut = new PlotOptionsDonut
+                    {
+                        Size = "68%"
+                    }
+                }
+            }
+        };
+
+        _weekOptions = new ApexChartOptions<ChartPoint>
+        {
+            Colors = new List<string> { "#2E7D32" },
+            Chart = new Chart
+            {
+                Toolbar = new Toolbar { Show = false }
+            },
+            DataLabels = new DataLabels { Enabled = false },
+            PlotOptions = new PlotOptions
+            {
+                Bar = new PlotOptionsBar
+                {
+                    BorderRadius = 4,
+                    ColumnWidth = "48%"
+                }
+            },
+            Yaxis = new List<YAxis>
+            {
+                new()
+                {
+                    DecimalsInFloat = 0,
+                    Min = 0
+                }
+            }
+        };
+    }
+
+    private MudBlazor.Color StatusColor(string status) => status switch
+    {
+        "Scheduled" => MudBlazor.Color.Info,
+        "Completed" => MudBlazor.Color.Success,
+        "Cancelled" => MudBlazor.Color.Error,
+        _ => MudBlazor.Color.Default
+    };
+
+    private record ChartPoint(string Label, decimal Value);
+}

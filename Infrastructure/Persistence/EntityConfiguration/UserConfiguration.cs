@@ -31,6 +31,7 @@ namespace Infrastructure.Persistence.EntityConfiguration
                    .HasMaxLength(20);
             builder.Property(u => u.Password)
                    .IsRequired();
+            builder.Property(u => u.PhotoDataUrl);
             builder.Property(u => u.Role)
                    .IsRequired();
 

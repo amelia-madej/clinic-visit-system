@@ -18,17 +18,20 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly IValidator<CreateUserDto> _createValidator;
         private readonly IValidator<UpdateUserDto> _updateValidator;
+        private readonly IValidator<UpdateUserProfileDto> _profileValidator;
 
         public UserService(
             IClinicUnitOfWork clinicUnitOfWork,
             IMapper mapper,
             IValidator<CreateUserDto> createValidator,
-            IValidator<UpdateUserDto> updateValidator)
+            IValidator<UpdateUserDto> updateValidator,
+            IValidator<UpdateUserProfileDto> profileValidator)
         {
             _uow = clinicUnitOfWork;
             _mapper = mapper;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
+            _profileValidator = profileValidator;
         }
 
         public int Create(CreateUserDto dto)
@@ -118,9 +121,68 @@ namespace Application.Services
 
             user.FirstName = dto.FirstName;
             user.LastName = dto.LastName;
+            user.Email = dto.Email;
             user.PhoneNumber = dto.PhoneNumber;
             user.Role = dto.Role;
 
+            _uow.Commit();
+        }
+
+        public void UpdateProfile(UpdateUserProfileDto dto)
+        {
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
+
+            _profileValidator.ValidateAndThrow(dto);
+
+            var user = _uow.UserRepository.Get(dto.UserId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            var existingUser = _uow.UserRepository.GetUserByEmail(dto.Email);
+            if (existingUser != null && existingUser.UserId != dto.UserId)
+                throw new Exception("User with this email already exists");
+
+            user.FirstName = dto.FirstName;
+            user.LastName = dto.LastName;
+            user.Email = dto.Email;
+            user.PhoneNumber = dto.PhoneNumber;
+
+            _uow.Commit();
+        }
+
+        public void UpdatePhoto(UpdateUserPhotoDto dto)
+        {
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
+
+            if (dto.UserId <= 0)
+                throw new ArgumentException("Invalid user ID", nameof(dto.UserId));
+
+            if (string.IsNullOrWhiteSpace(dto.PhotoDataUrl))
+                throw new ArgumentException("Photo cannot be empty", nameof(dto.PhotoDataUrl));
+
+            if (!dto.PhotoDataUrl.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Photo must be an image");
+
+            var user = _uow.UserRepository.Get(dto.UserId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            user.PhotoDataUrl = dto.PhotoDataUrl;
+            _uow.Commit();
+        }
+
+        public void DeletePhoto(int id)
+        {
+            if (id <= 0)
+                throw new ArgumentException("Invalid user ID", nameof(id));
+
+            var user = _uow.UserRepository.Get(id);
+            if (user == null)
+                throw new Exception("User not found");
+
+            user.PhotoDataUrl = null;
             _uow.Commit();
         }
     }

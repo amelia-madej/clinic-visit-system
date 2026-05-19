@@ -1,9 +1,10 @@
 @page "/"
-@inject IDoctorService DoctorService
+@inject IAuthService AuthService
 @inject AppStateService AppState
 @inject NavigationManager Nav
+@inject ISnackbar Snackbar
 
-<PageTitle>Doctor Portal</PageTitle>
+<PageTitle>Doctor Login</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height:100vh;">
     <MudCard Elevation="4" Style="width:100%;">
@@ -14,53 +15,74 @@
                          Style="font-size:3rem;" />
                 <MudText Typo="Typo.h5">Doctor Portal</MudText>
                 <MudText Typo="Typo.body2" Color="Color.Secondary">
-                    Select your profile to continue
+                    Log in to access visits and patient data
                 </MudText>
             </MudStack>
 
-            <MudSelect T="DoctorListItemDto"
-                       @bind-Value="_selected"
-                       Label="Select Doctor"
-                       Variant="Variant.Outlined"
-                       ToStringFunc="DoctorToString"
-                       FullWidth="true"
-                       Class="mb-4">
-                @foreach (var d in _doctors)
-                {
-                    <MudSelectItem T="DoctorListItemDto" Value="@d">
-                        Dr. @d.FirstName @d.LastName — @d.Specialization
-                    </MudSelectItem>
-                }
-            </MudSelect>
+            <EditForm Model="_login" OnValidSubmit="Login">
+                <DataAnnotationsValidator />
+                <MudStack Spacing="3">
+                    <MudTextField @bind-Value="_login.Email"
+                                  Label="Email"
+                                  Required="true"
+                                  InputType="InputType.Email"
+                                  Variant="Variant.Outlined" />
+                    <MudTextField @bind-Value="_login.Password"
+                                  Label="Password"
+                                  Required="true"
+                                  InputType="InputType.Password"
+                                  Variant="Variant.Outlined" />
 
-            <MudButton Variant="Variant.Filled"
-                       Color="Color.Primary"
-                       FullWidth="true"
-                       Size="Size.Large"
-                       Disabled="_selected is null"
-                       OnClick="Continue">
-                Continue
-            </MudButton>
+                    @if (!string.IsNullOrWhiteSpace(_error))
+                    {
+                        <MudAlert Severity="Severity.Error">@_error</MudAlert>
+                    }
+
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               FullWidth="true"
+                               Size="Size.Large"
+                               ButtonType="ButtonType.Submit"
+                               Disabled="_loading">
+                        Login
+                    </MudButton>
+                </MudStack>
+            </EditForm>
         </MudCardContent>
     </MudCard>
 </MudContainer>
 
 @code {
-    private List<DoctorListItemDto> _doctors = new();
-    private DoctorListItemDto? _selected;
+    private LoginDto _login = new();
+    private bool _loading;
+    private string? _error;
 
-    protected override void OnInitialized()
+    private void Login()
     {
-        _doctors = DoctorService.GetAll();
-    }
+        _loading = true;
+        _error = null;
 
-    private void Continue()
-    {
-        if (_selected is null) return;
-        AppState.SetDoctor(_selected);
-        Nav.NavigateTo("/visits");
-    }
+        try
+        {
+            var result = AuthService.Login(_login);
 
-    private string DoctorToString(DoctorListItemDto? d) =>
-        d is null ? string.Empty : $"Dr. {d.FirstName} {d.LastName}";
+            if (result.Role != UserRole.Doctor || result.DoctorId is null)
+            {
+                _error = "This portal is available only for doctors.";
+                return;
+            }
+
+            AppState.SetUser(result);
+            Snackbar.Add($"Welcome, Dr. {result.LastName}.", Severity.Success);
+            Nav.NavigateTo("/home");
+        }
+        catch
+        {
+            _error = "Invalid doctor email or password.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
 }

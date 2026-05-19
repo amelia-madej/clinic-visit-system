@@ -2,6 +2,7 @@
 @inject AppStateService AppState
 @inject NavigationManager Nav
 @inject NotificationService NotificationService
+@implements IDisposable
 
 <RadzenLayout Style="height:100vh">
     <RadzenNotification />
@@ -33,13 +34,27 @@
 
                 @if (AppState.CurrentPatient is not null)
                 {
+                    @if (string.IsNullOrWhiteSpace(AppState.CurrentUser?.PhotoDataUrl))
+                    {
+                        <div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#eef3fa;color:#0b2545;border:2px solid rgba(255,255,255,.65);">
+                            <RadzenIcon Icon="person" Style="font-size:20px;" />
+                        </div>
+                    }
+                    else
+                    {
+                        <img src="@AppState.CurrentUser.PhotoDataUrl"
+                             alt="Profile photo"
+                             style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.85);" />
+                    }
+
                     <RadzenText Text="@($"{AppState.CurrentPatient.FirstName} {AppState.CurrentPatient.LastName}")"
                                 Style="color:white;" />
 
                     <RadzenButton Icon="logout"
                                   Size="ButtonSize.Small"
                                   ButtonStyle="ButtonStyle.Light"
-                                  Click="@Switch" />
+                                  Click="@Switch"
+                                  class="menu-btn" />
                 }
 
             </RadzenStack>
@@ -48,12 +63,15 @@
     </RadzenHeader>
 
     <!-- SIDEBAR -->
-    <RadzenSidebar @bind-Expanded="_sidebarOpen"
-                   Style="background-color: var(--rz-primary-light); color:white;">
+    @if (AppState.CurrentUser is not null)
+    {
+        <RadzenSidebar @bind-Expanded="_sidebarOpen"
+                       Style="background-color: var(--rz-primary-light); color:white;">
 
-        <NavMenu />
+            <NavMenu />
 
-    </RadzenSidebar>
+        </RadzenSidebar>
+    }
 
     <!-- BODY -->
     <RadzenBody Style="background-color:white; padding:20px;">
@@ -65,9 +83,35 @@
 @code {
     private bool _sidebarOpen = false;
 
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+        RedirectIfLoggedOut();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+            RedirectIfLoggedOut();
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        RedirectIfLoggedOut();
+    }
+
+    private void RedirectIfLoggedOut()
+    {
+        var relativePath = Nav.ToBaseRelativePath(Nav.Uri).TrimEnd('/');
+        var isLoginPage = string.IsNullOrWhiteSpace(relativePath);
+
+        if (!isLoginPage && AppState.CurrentUser is null)
+            Nav.NavigateTo("/", replace: true);
+    }
+
     private void ToggleSidebar()
     {
-        if (AppState.CurrentPatient is null)
+        if (AppState.CurrentUser is null)
             return;
 
         _sidebarOpen = !_sidebarOpen;
@@ -75,7 +119,12 @@
 
     private void Switch()
     {
-        AppState.SetPatient(null);
+        AppState.Logout();
         Nav.NavigateTo("/");
+    }
+
+    public void Dispose()
+    {
+        Nav.LocationChanged -= OnLocationChanged;
     }
 }

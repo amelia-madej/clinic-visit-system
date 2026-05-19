@@ -12,6 +12,7 @@ namespace Application.Mapping
             CreateMap<User, UserDto>();
             CreateMap<CreateUserDto, User>();
             CreateMap<UpdateUserDto, User>();
+            CreateMap<UpdateUserProfileDto, User>();
 
             // Patient
             CreateMap<Patient, PatientListItemDto>()

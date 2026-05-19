@@ -171,6 +171,72 @@ namespace WebAPI.Controllers
             }
         }
 
+        // PUT api/user/{id}/profile
+        [HttpPut("{id}/profile")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult UpdateProfile(int id, [FromBody] UpdateUserProfileDto dto)
+        {
+            _logger.LogDebug($"Rozpoczęto aktualizację profilu użytkownika o id {id}");
+            try
+            {
+                if (id != dto.UserId)
+                    throw new Exception("Id param is not valid");
+
+                _userService.UpdateProfile(dto);
+                _logger.LogDebug($"Zakończono aktualizację profilu użytkownika o id {id}");
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Błąd podczas aktualizacji profilu użytkownika: {ex.Message}");
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // PUT api/user/{id}/photo
+        [HttpPut("{id}/photo")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult UpdatePhoto(int id, [FromBody] UpdateUserPhotoDto dto)
+        {
+            _logger.LogDebug($"Rozpoczęto aktualizację zdjęcia użytkownika o id {id}");
+            try
+            {
+                if (id != dto.UserId)
+                    throw new Exception("Id param is not valid");
+
+                _userService.UpdatePhoto(dto);
+                _logger.LogDebug($"Zakończono aktualizację zdjęcia użytkownika o id {id}");
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Błąd podczas aktualizacji zdjęcia użytkownika: {ex.Message}");
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // DELETE api/user/{id}/photo
+        [HttpDelete("{id}/photo")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult DeletePhoto(int id)
+        {
+            _logger.LogDebug($"Rozpoczęto usuwanie zdjęcia użytkownika o id {id}");
+            try
+            {
+                _userService.DeletePhoto(id);
+                _logger.LogDebug($"Zakończono usuwanie zdjęcia użytkownika o id {id}");
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Błąd podczas usuwania zdjęcia użytkownika: {ex.Message}");
+                return BadRequest(ex.Message);
+            }
+        }
+
         // DELETE api/user/{id}
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

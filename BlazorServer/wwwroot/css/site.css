@@ -16,3 +16,31 @@
     right: 0.75rem;
     top: 0.5rem;
 }
+
+.profile-upload-button {
+    cursor: pointer;
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+.profile-upload-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--rz-primary);
+    background: var(--rz-primary);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+
+    .profile-upload-button:hover {
+        background: var(--rz-primary-dark);
+        border-color: var(--rz-primary-dark);
+    }

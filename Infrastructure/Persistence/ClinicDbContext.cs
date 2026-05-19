@@ -1,6 +1,8 @@
-﻿using Domain.Models;
+using Domain.Models;
 using Infrastructure.Persistence.EntityConfiguration;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
+
 namespace Infrastructure.Persistence
 {
     public class ClinicDbContext : DbContext
@@ -16,14 +18,7 @@ namespace Infrastructure.Persistence
         public DbSet<Medication> Medications { get; set; }
         public ClinicDbContext(DbContextOptions<ClinicDbContext> options) : base(options)
         {
-            // Database.EnsureCreated() sprawdza, czy baza danych istnieje. 
-            // Jeśli tak - nic nie robi. Jeśli nie - tworzy bazę i tabele zgodnie z modelem.
-            // UWAGA: Gdy baza istnieje, nie jest sprawdzane, czy jest zgodna z modelem.
-            // Aby zagwarantować zgodność bazy z modelem można rozważyć sekwecję instrukcji: 
-            //      Database.EnsureDeleted();
-            //      Database.EnsureCreated();
-            // Powoduje to jednak zawsze usuwanie bazy przed rozpoczęciem dzialania programu.
-            //Database.EnsureDeleted();
+            // Database.EnsureCreated() checks whether the database exists and creates it if needed.
             Database.EnsureCreated();
         }
         protected override void OnModelCreating(ModelBuilder builder)

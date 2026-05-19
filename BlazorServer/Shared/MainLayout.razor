@@ -2,6 +2,7 @@
 @inject IDoctorService DoctorService
 @inject AppStateService AppState
 @inject NavigationManager Nav
+@implements IDisposable
 
 <MudThemeProvider Theme="_theme" />
 <MudPopoverProvider />
@@ -18,21 +19,37 @@
         <MudSpacer />
         @if (AppState.CurrentDoctor is not null)
         {
+            @if (string.IsNullOrWhiteSpace(AppState.CurrentUser?.PhotoDataUrl))
+            {
+                <MudAvatar Size="Size.Small" Color="Color.Inherit" Class="mr-2">
+                    <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                </MudAvatar>
+            }
+            else
+            {
+                <MudAvatar Size="Size.Small" Class="mr-2">
+                    <MudImage Src="@AppState.CurrentUser.PhotoDataUrl" Alt="Profile photo" ObjectFit="ObjectFit.Cover" />
+                </MudAvatar>
+            }
+
             <MudText Typo="Typo.body1" Class="mr-2">
                 Dr. @AppState.CurrentDoctor.FirstName @AppState.CurrentDoctor.LastName
             </MudText>
-            <MudIconButton Icon="@Icons.Material.Filled.SwitchAccount"
+            <MudIconButton Icon="@Icons.Material.Filled.Logout"
                            Color="Color.Inherit"
                            OnClick="Switch" />
         }
     </MudAppBar>
 
-    <MudDrawer @bind-Open="_drawerOpen" Elevation="2" Variant="DrawerVariant.Responsive">
-        <MudDrawerHeader>
-            <MudText Typo="Typo.h6">Menu</MudText>
-        </MudDrawerHeader>
-        <NavMenu />
-    </MudDrawer>
+    @if (AppState.CurrentUser is not null)
+    {
+        <MudDrawer @bind-Open="_drawerOpen" Elevation="2" Variant="DrawerVariant.Responsive">
+            <MudDrawerHeader>
+                <MudText Typo="Typo.h6">Menu</MudText>
+            </MudDrawerHeader>
+            <NavMenu />
+        </MudDrawer>
+    }
 
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.Large" Class="pt-6">
@@ -44,12 +61,49 @@
 @code {
     private bool _drawerOpen = true;
 
-    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+        RedirectIfLoggedOut();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+            RedirectIfLoggedOut();
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        RedirectIfLoggedOut();
+    }
+
+    private void RedirectIfLoggedOut()
+    {
+        var relativePath = Nav.ToBaseRelativePath(Nav.Uri).TrimEnd('/');
+        var isLoginPage = string.IsNullOrWhiteSpace(relativePath);
+
+        if (!isLoginPage && AppState.CurrentUser is null)
+            Nav.NavigateTo("/", replace: true);
+    }
+
+    private void ToggleDrawer()
+    {
+        if (AppState.CurrentUser is null)
+            return;
+
+        _drawerOpen = !_drawerOpen;
+    }
 
     private void Switch()
     {
-        AppState.SetDoctor(null);
+        AppState.Logout();
         Nav.NavigateTo("/");
+    }
+
+    public void Dispose()
+    {
+        Nav.LocationChanged -= OnLocationChanged;
     }
 
     private readonly MudTheme _theme = new()

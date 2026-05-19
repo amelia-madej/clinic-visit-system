@@ -13,6 +13,9 @@ namespace Application.Services
     {
         int Create(CreateUserDto dto);
         void Update(UpdateUserDto dto);
+        void UpdateProfile(UpdateUserProfileDto dto);
+        void UpdatePhoto(UpdateUserPhotoDto dto);
+        void DeletePhoto(int id);
         void Delete(int id);
 
         List<UserDto> GetAll();
