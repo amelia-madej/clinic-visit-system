@@ -1,0 +1,211 @@
+@page "/admin"
+@using ApexCharts
+@inject IAnomalyDetectionService AnomalyDetectionService
+@inject AppStateService AppState
+@inject NavigationManager Nav
+
+<PageTitle>Admin Panel</PageTitle>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="MudBlazor.Color.Primary" />
+}
+else
+{
+    <MudStack Spacing="3">
+        <MudStack Row="true" AlignItems="AlignItems.End" Wrap="Wrap.Wrap" Spacing="2">
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h4">Admin Panel</MudText>
+                <MudText Typo="Typo.body2" Color="MudBlazor.Color.Secondary">Anomaly monitoring</MudText>
+            </MudStack>
+            <MudSpacer />
+            <MudDatePicker Label="From" @bind-Date="_periodStart" DateFormat="yyyy-MM-dd" />
+            <MudDatePicker Label="To" @bind-Date="_periodEnd" DateFormat="yyyy-MM-dd" />
+            <MudButton Variant="Variant.Outlined" Color="MudBlazor.Color.Secondary" OnClick="@(()=>ApplyQuickRange(7))">7d</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="MudBlazor.Color.Secondary" OnClick="@(()=>ApplyQuickRange(30))">30d</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="MudBlazor.Color.Secondary" OnClick="@(()=>ApplyQuickRange(90))">90d</MudButton>
+            <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" StartIcon="@Icons.Material.Filled.Search" OnClick="ApplyRange">Refresh</MudButton>
+        </MudStack>
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" sm="6" md="3"><MudPaper Class="pa-4" Elevation="1"><MudText Typo="Typo.caption">Period</MudText><MudText Typo="Typo.h5">@_rangeLabel</MudText></MudPaper></MudItem>
+            <MudItem xs="12" sm="6" md="3"><MudPaper Class="pa-4" Elevation="1"><MudText Typo="Typo.caption">Visits</MudText><MudText Typo="Typo.h4">@_dashboard.TotalVisits</MudText></MudPaper></MudItem>
+            <MudItem xs="12" sm="6" md="3"><MudPaper Class="pa-4" Elevation="1"><MudText Typo="Typo.caption">Sick Leaves / Prescriptions</MudText><MudText Typo="Typo.h4">@_dashboard.TotalSickLeaves / @_dashboard.TotalPrescriptions</MudText></MudPaper></MudItem>
+            <MudItem xs="12" sm="6" md="3"><MudPaper Class="pa-4" Elevation="1"><MudText Typo="Typo.caption">Alerts</MudText><MudText Typo="Typo.h4">@_dashboard.TotalAlerts</MudText></MudPaper></MudItem>
+        </MudGrid>
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" md="4">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudText Typo="Typo.h6" Class="mb-2">By Category</MudText>
+                    @if (_categoryPoints.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info">No chart data in selected period.</MudAlert>
+                    }
+                    else
+                    {
+                        <ApexChart TItem="ChartPoint" Options="_donutOptions" Height="250">
+                            <ApexPointSeries TItem="ChartPoint" Items="_categoryPoints" SeriesType="SeriesType.Donut" XValue="@(p => p.Label)" YValue="@(p => p.Value)" />
+                        </ApexChart>
+                    }
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudText Typo="Typo.h6" Class="mb-2">By Severity</MudText>
+                    @if (_severityPoints.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info">No chart data in selected period.</MudAlert>
+                    }
+                    else
+                    {
+                        <ApexChart TItem="ChartPoint" Options="_severityDonutOptions" Height="250">
+                            <ApexPointSeries TItem="ChartPoint" Items="_severityPoints" SeriesType="SeriesType.Donut" XValue="@(p => p.Label)" YValue="@(p => p.Value)" />
+                        </ApexChart>
+                    }
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudText Typo="Typo.h6" Class="mb-2">Top Doctors</MudText>
+                    @if (_doctorPoints.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info">No doctor alerts in selected period.</MudAlert>
+                    }
+                    else
+                    {
+                        <ApexChart TItem="ChartPoint" Options="_barOptions" Height="250">
+                            <ApexPointSeries TItem="ChartPoint" Items="_doctorPoints" SeriesType="SeriesType.Bar" XValue="@(p => p.Label)" YValue="@(p => p.Value)" />
+                        </ApexChart>
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Class="pa-4" Elevation="1">
+            <MudText Typo="Typo.h6" Class="mb-2">Detected alerts</MudText>
+            @if (_dashboard.Alerts.Count == 0)
+            {
+                <MudAlert Severity="Severity.Success">No anomalies in selected period.</MudAlert>
+            }
+            else
+            {
+                <MudTable Items="_dashboard.Alerts" Dense="true" Hover="true" Elevation="0">
+                    <HeaderContent>
+                        <MudTh>Category</MudTh><MudTh>Entity</MudTh><MudTh>Value</MudTh><MudTh>Threshold</MudTh><MudTh>Severity</MudTh><MudTh>Description</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.Category</MudTd>
+                        <MudTd>@context.EntityName</MudTd>
+                        <MudTd>@context.MetricValue</MudTd>
+                        <MudTd>@context.ThresholdValue</MudTd>
+                        <MudTd><MudChip T="string" Color="@SeverityColor(context.Severity)" Size="MudBlazor.Size.Small">@context.Severity</MudChip></MudTd>
+                        <MudTd>@context.Description</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </MudPaper>
+    </MudStack>
+}
+
+@code {
+    private AnomalyDashboardDto _dashboard = new();
+    private List<ChartPoint> _categoryPoints = new();
+    private List<ChartPoint> _severityPoints = new();
+    private List<ChartPoint> _doctorPoints = new();
+    private ApexChartOptions<ChartPoint> _donutOptions = new();
+    private ApexChartOptions<ChartPoint> _severityDonutOptions = new();
+    private ApexChartOptions<ChartPoint> _barOptions = new();
+    private DateTime? _periodStart = DateTime.Today.AddDays(-90);
+    private DateTime? _periodEnd = DateTime.Today;
+    private string _rangeLabel = string.Empty;
+    private bool _loading = true;
+
+    protected override void OnInitialized()
+    {
+        if (AppState.CurrentUser?.Role != UserRole.Admin)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+        LoadDashboard();
+    }
+
+    private void ApplyQuickRange(int days)
+    {
+        _periodEnd = DateTime.Today;
+        _periodStart = DateTime.Today.AddDays(-days);
+        LoadDashboard();
+    }
+
+    private void ApplyRange() => LoadDashboard();
+
+    private void LoadDashboard()
+    {
+        var start = (_periodStart ?? DateTime.Today.AddDays(-90)).Date;
+        var end = (_periodEnd ?? DateTime.Today).Date;
+        if (end < start)
+        {
+            (start, end) = (end, start);
+            _periodStart = start;
+            _periodEnd = end;
+        }
+
+        _dashboard = AnomalyDetectionService.DetectAnomalies(start, end);
+        _rangeLabel = $"{start:yyyy-MM-dd} - {end:yyyy-MM-dd}";
+
+        _categoryPoints = _dashboard.AlertsByCategory
+            .Select(x => new ChartPoint { Label = x.Key, Value = x.Value })
+            .OrderByDescending(x => x.Value).ToList();
+        var severityCounts = _dashboard.Alerts
+            .GroupBy(a => a.Severity)
+            .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
+        _severityPoints = new List<ChartPoint>
+        {
+            new() { Label = "High", Value = severityCounts.GetValueOrDefault("High", 0) },
+            new() { Label = "Medium", Value = severityCounts.GetValueOrDefault("Medium", 0) },
+            new() { Label = "Low", Value = severityCounts.GetValueOrDefault("Low", 0) }
+        }.Where(x => x.Value > 0).ToList();
+        _doctorPoints = _dashboard.Alerts
+            .Where(a => !string.Equals(a.EntityType, "System", StringComparison.OrdinalIgnoreCase))
+            .Where(a => !string.IsNullOrWhiteSpace(a.EntityName))
+            .GroupBy(a => a.EntityName)
+            .Select(g => new ChartPoint { Label = g.Key, Value = g.Count() })
+            .OrderByDescending(x => x.Value)
+            .Take(6).ToList();
+
+        _donutOptions = new ApexChartOptions<ChartPoint>
+        {
+            Colors = new List<string> { "#D32F2F", "#ED6C02", "#1976D2", "#2E7D32", "#9C27B0", "#00838F" },
+            Legend = new Legend { Position = LegendPosition.Bottom, FontSize = "12px" },
+            Stroke = new Stroke { Width = 0 }
+        };
+        _severityDonutOptions = new ApexChartOptions<ChartPoint>
+        {
+            Colors = new List<string> { "#D32F2F", "#ED6C02", "#1976D2" },
+            Legend = new Legend { Position = LegendPosition.Bottom, FontSize = "12px" },
+            Stroke = new Stroke { Width = 0 }
+        };
+
+        _barOptions = new ApexChartOptions<ChartPoint>
+        {
+            Chart = new Chart { Toolbar = new Toolbar { Show = false } },
+            DataLabels = new DataLabels { Enabled = false }
+        };
+
+        _loading = false;
+    }
+
+    private MudBlazor.Color SeverityColor(string severity) => severity switch
+    {
+        "High" => MudBlazor.Color.Error,
+        "Medium" => MudBlazor.Color.Warning,
+        _ => MudBlazor.Color.Info
+    };
+
+    private class ChartPoint
+    {
+        public string Label { get; set; } = string.Empty;
+        public decimal Value { get; set; }
+    }
+}

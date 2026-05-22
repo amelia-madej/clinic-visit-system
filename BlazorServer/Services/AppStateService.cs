@@ -12,6 +12,7 @@ public class AppStateService
     public void SetUser(AuthResponseDto? user)
     {
         CurrentUser = user;
+        CurrentDoctor = null;
 
         if (user?.DoctorId is int doctorId)
         {

@@ -18,6 +18,22 @@ namespace Infrastructure.Repositories
             _dbContext = dbContext;
         }
 
+        public List<Prescription> GetAllWithDetails()
+        {
+            return _dbContext.Prescriptions
+                .Include(p => p.MedicalRecord)
+                    .ThenInclude(mr => mr!.Visit)
+                        .ThenInclude(v => v!.Doctor)
+                            .ThenInclude(d => d!.User)
+                .Include(p => p.MedicalRecord)
+                    .ThenInclude(mr => mr!.Visit)
+                        .ThenInclude(v => v!.Patient)
+                            .ThenInclude(p => p!.User)
+                .Include(p => p.Items)
+                    .ThenInclude(i => i.Medication)
+                .ToList();
+        }
+
         public Prescription? GetPrescriptionById(int id) =>
             _dbContext.Prescriptions
                 .Include(p => p.Items)

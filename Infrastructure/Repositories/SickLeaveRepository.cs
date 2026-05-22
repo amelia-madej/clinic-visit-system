@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Domain.Contracts;
 using Domain.Models;
 using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
@@ -17,24 +18,53 @@ namespace Infrastructure.Repositories
             _dbContext = dbContext;
         }
 
+        public List<SickLeave> GetAllWithDetails()
+        {
+            return _dbContext.SickLeaves
+                .Include(sl => sl.MedicalRecord)
+                    .ThenInclude(mr => mr!.Visit)
+                        .ThenInclude(v => v!.Doctor)
+                            .ThenInclude(d => d!.User)
+                .Include(sl => sl.MedicalRecord)
+                    .ThenInclude(mr => mr!.Visit)
+                        .ThenInclude(v => v!.Patient)
+                            .ThenInclude(p => p!.User)
+                .ToList();
+        }
+
         public List<SickLeave> GetSickLeavesByDateRange(DateTime startDate, DateTime endDate)
         {
-            return _dbContext.SickLeaves.Where(sl => sl.StartDate >= startDate && sl.EndDate <= endDate).ToList();
+            return _dbContext.SickLeaves
+                .Include(sl => sl.MedicalRecord)
+                    .ThenInclude(mr => mr!.Visit)
+                .Where(sl => sl.StartDate >= startDate && sl.EndDate <= endDate)
+                .ToList();
         }
 
         public List<SickLeave> GetSickLeavesByDoctorId(int doctorId)
         {
-            return _dbContext.SickLeaves.Where(sl => sl.MedicalRecord.Visit.DoctorId == doctorId).ToList();
+            return _dbContext.SickLeaves
+                .Include(sl => sl.MedicalRecord)
+                    .ThenInclude(mr => mr!.Visit)
+                .Where(sl => sl.MedicalRecord!.Visit!.DoctorId == doctorId)
+                .ToList();
         }
 
         public List<SickLeave> GetSickLeavesByPatientId(int patientId)
         {
-            return _dbContext.SickLeaves.Where(sl => sl.MedicalRecord.Visit.PatientId == patientId).ToList();
+            return _dbContext.SickLeaves
+                .Include(sl => sl.MedicalRecord)
+                    .ThenInclude(mr => mr!.Visit)
+                .Where(sl => sl.MedicalRecord!.Visit!.PatientId == patientId)
+                .ToList();
         }
 
         public List<SickLeave> GetSickLeavesByVisitId(int visitId)
         {
-            return _dbContext.SickLeaves.Where(sl => sl.MedicalRecord.VisitId == visitId).ToList();
+            return _dbContext.SickLeaves
+                .Include(sl => sl.MedicalRecord)
+                .Where(sl => sl.MedicalRecord!.VisitId == visitId)
+                .ToList();
         }
     }
 }

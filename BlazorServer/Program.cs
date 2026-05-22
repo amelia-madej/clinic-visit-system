@@ -78,6 +78,7 @@ builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
 builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();
 builder.Services.AddScoped<IPrescriptionItemService, PrescriptionItemService>();
 builder.Services.AddScoped<ISickLeaveService, SickLeaveService>();
+builder.Services.AddScoped<IAnomalyDetectionService, AnomalyDetectionService>();
 
 var app = builder.Build();
 
@@ -97,10 +98,7 @@ app.MapFallbackToPage("/_Host");
 using (var scope = app.Services.CreateScope())
 {
     var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
-    // seeder.Seed();
-
-    var medicationImport = scope.ServiceProvider.GetRequiredService<IMedicationImportService>();
-    medicationImport.ImportAsync().GetAwaiter().GetResult();
+    seeder.EnsureBaselineAnomalyData();
 }
 
 app.Run();

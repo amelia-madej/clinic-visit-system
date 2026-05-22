@@ -66,15 +66,15 @@
         {
             var result = AuthService.Login(_login);
 
-            if (result.Role != UserRole.Doctor || result.DoctorId is null)
+            if (result.Role != UserRole.Doctor && result.Role != UserRole.Admin)
             {
-                _error = "This portal is available only for doctors.";
+                _error = "This portal is available only for doctors and administrators.";
                 return;
             }
 
             AppState.SetUser(result);
-            Snackbar.Add($"Welcome, Dr. {result.LastName}.", Severity.Success);
-            Nav.NavigateTo("/home");
+            Snackbar.Add($"Welcome, {result.FullName}.", Severity.Success);
+            Nav.NavigateTo(result.Role == UserRole.Admin ? "/admin" : "/home");
         }
         catch
         {

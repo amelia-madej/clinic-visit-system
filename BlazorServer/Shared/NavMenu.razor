@@ -1,17 +1,28 @@
+@inject BlazorServer.Services.AppStateService AppState
+
 <MudNavMenu>
-    <MudNavLink Href="profile" Icon="@Icons.Material.Filled.AccountCircle">
-        Profile
-    </MudNavLink>
-    <MudNavLink Href="home" Icon="@Icons.Material.Filled.Home">
-        Home
-    </MudNavLink>
-    <MudNavLink Href="visits" Icon="@Icons.Material.Filled.CalendarMonth">
-        Visits
-    </MudNavLink>
-    <MudNavLink Href="patients" Icon="@Icons.Material.Filled.People">
-        Patients
-    </MudNavLink>
-    <MudNavLink Href="medications" Icon="@Icons.Material.Filled.Medication">
-        Medications
-    </MudNavLink>
+    @if (AppState.CurrentUser?.Role == UserRole.Admin)
+    {
+        <MudNavLink Href="admin" Icon="@Icons.Material.Filled.AdminPanelSettings">
+            Admin
+        </MudNavLink>
+    }
+    else
+    {
+        <MudNavLink Href="profile" Icon="@Icons.Material.Filled.AccountCircle">
+            Profile
+        </MudNavLink>
+        <MudNavLink Href="home" Icon="@Icons.Material.Filled.Home">
+            Home
+        </MudNavLink>
+        <MudNavLink Href="visits" Icon="@Icons.Material.Filled.CalendarMonth">
+            Visits
+        </MudNavLink>
+        <MudNavLink Href="patients" Icon="@Icons.Material.Filled.People">
+            Patients
+        </MudNavLink>
+        <MudNavLink Href="medications" Icon="@Icons.Material.Filled.Medication">
+            Medications
+        </MudNavLink>
+    }
 </MudNavMenu>

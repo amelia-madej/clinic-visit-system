@@ -89,6 +89,7 @@ try
     builder.Services.AddScoped<IPrescriptionItemService, PrescriptionItemService>();
     builder.Services.AddScoped<ISickLeaveService, SickLeaveService>();
     builder.Services.AddScoped<IAuthService, AuthService>();
+    builder.Services.AddScoped<IAnomalyDetectionService, AnomalyDetectionService>();
 
     builder.Services.AddScoped<DataSeeder>();
 
@@ -122,10 +123,7 @@ try
     using (var scope = app.Services.CreateScope())
     {
         var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
-        // dataSeeder.Seed();
-
-        var medicationImport = scope.ServiceProvider.GetRequiredService<IMedicationImportService>();
-        medicationImport.ImportAsync().GetAwaiter().GetResult();
+        dataSeeder.EnsureBaselineAnomalyData();
     }
 
     app.Run();
