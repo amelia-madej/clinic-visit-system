@@ -484,7 +484,6 @@ $RECYCLE.BIN/
 *.swp
 
 # SQLite Database Files
-*.db
 *.db-wal
 *.db-shm
 /WebAPI/ClinicVisitSystem.db-shm
