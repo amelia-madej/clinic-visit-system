@@ -1,58 +1,187 @@
 @page "/"
 @inject IAuthClientService AuthService
+@inject IPatientClientService PatientService
 @inject AppStateService AppState
 @inject NavigationManager Nav
 @inject NotificationService NotificationService
 
-<PageTitle>Patient Login</PageTitle>
+<PageTitle>Patient Portal</PageTitle>
 
 <RadzenStack AlignItems="AlignItems.Center"
              JustifyContent="JustifyContent.Center"
              Style="min-height:100vh; background: var(--rz-base-background-color);">
 
-    <RadzenCard Style="width:420px; padding:32px;">
+    <RadzenCard Style="width:520px; max-width: calc(100vw - 32px); padding:32px;">
         <RadzenStack AlignItems="AlignItems.Center" Gap="10px" Style="margin-bottom:24px;">
             <RadzenIcon Icon="local_hospital" Style="font-size:56px; color: var(--rz-primary);" />
             <RadzenText Text="Patient Portal"
                         TextStyle="TextStyle.H4"
                         Style="color: var(--rz-primary-dark); margin:0; font-weight:600;" />
-            <RadzenText Text="Log in to manage your visits and profile" Style="color:gray;" />
+            <RadzenText Text="@(_registerMode ? "Create your patient account" : "Log in to manage your visits and profile")" Style="color:gray;" />
         </RadzenStack>
 
-        <RadzenTemplateForm TItem="LoginDto" Data="@_login" Submit="@Login">
-            <RadzenStack Gap="16px">
-                <RadzenFormField Text="Email" Style="width:100%;">
-                    <RadzenTextBox Name="Email" @bind-Value="_login.Email" Style="width:100%;" />
-                </RadzenFormField>
-                <RadzenRequiredValidator Component="Email" Text="Email is required" />
+        @if (!_registerMode)
+        {
+            <RadzenTemplateForm TItem="LoginDto" Data="@_login" Submit="@Login">
+                <RadzenStack Gap="16px">
+                    <RadzenFormField Text="Email" Style="width:100%;">
+                        <RadzenTextBox Name="Email" @bind-Value="_login.Email" Style="width:100%;" />
+                    </RadzenFormField>
+                    <RadzenRequiredValidator Component="Email" Text="Email is required" />
+                    <RadzenEmailValidator Component="Email" Text="Enter a valid email address" />
 
-                <RadzenFormField Text="Password" Style="width:100%;">
-                    <RadzenPassword Name="Password" @bind-Value="_login.Password" Style="width:100%;" />
-                </RadzenFormField>
-                <RadzenRequiredValidator Component="Password" Text="Password is required" />
+                    <RadzenFormField Text="Password" Style="width:100%;">
+                        <RadzenPassword Name="Password" @bind-Value="_login.Password" Style="width:100%;" />
+                    </RadzenFormField>
+                    <RadzenRequiredValidator Component="Password" Text="Password is required" />
 
-                @if (!string.IsNullOrWhiteSpace(_error))
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" Shade="Shade.Lighter">
-                        @_error
-                    </RadzenAlert>
-                }
+                    @if (!string.IsNullOrWhiteSpace(_error))
+                    {
+                        <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" Shade="Shade.Lighter">
+                            @_error
+                        </RadzenAlert>
+                    }
 
-                <RadzenButton Text="Login"
-                              Icon="login"
-                              ButtonType="ButtonType.Submit"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Disabled="_loading"
-                              Style="width:100%; height:42px;" />
-            </RadzenStack>
-        </RadzenTemplateForm>
+                    <RadzenButton Text="Login"
+                                  Icon="login"
+                                  ButtonType="ButtonType.Submit"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  Disabled="_loading"
+                                  Style="width:100%; height:42px;" />
+
+                    <RadzenButton Text="Create patient account"
+                                  Icon="person_add"
+                                  ButtonStyle="ButtonStyle.Light"
+                                  Click="@ShowRegister"
+                                  Style="width:100%; height:40px;" />
+                </RadzenStack>
+            </RadzenTemplateForm>
+        }
+        else
+        {
+            <RadzenTemplateForm TItem="PatientRegistrationForm" Data="@_register" Submit="@Register">
+                <RadzenStack Gap="14px">
+                    <RadzenRow Gap="12px">
+                        <RadzenColumn Size="12" SizeMD="6">
+                            <RadzenFormField Text="First Name" Style="width:100%;">
+                                <RadzenTextBox Name="FirstName" @bind-Value="_register.FirstName" Style="width:100%;" />
+                            </RadzenFormField>
+                            <RadzenRequiredValidator Component="FirstName" Text="First name is required" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="6">
+                            <RadzenFormField Text="Last Name" Style="width:100%;">
+                                <RadzenTextBox Name="LastName" @bind-Value="_register.LastName" Style="width:100%;" />
+                            </RadzenFormField>
+                            <RadzenRequiredValidator Component="LastName" Text="Last name is required" />
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <RadzenFormField Text="Email" Style="width:100%;">
+                        <RadzenTextBox Name="RegisterEmail" @bind-Value="_register.Email" Style="width:100%;" />
+                    </RadzenFormField>
+                    <RadzenRequiredValidator Component="RegisterEmail" Text="Email is required" />
+                    <RadzenEmailValidator Component="RegisterEmail" Text="Enter a valid email address" />
+
+                    <RadzenRow Gap="12px">
+                        <RadzenColumn Size="12" SizeMD="6">
+                            <RadzenFormField Text="Phone Number" Style="width:100%;">
+                                <RadzenTextBox Name="PhoneNumber" @bind-Value="_register.PhoneNumber" Style="width:100%;" />
+                            </RadzenFormField>
+                            <RadzenRequiredValidator Component="PhoneNumber" Text="Phone number is required" />
+                            <RadzenRegexValidator Component="PhoneNumber" Pattern="@PhoneNumberPattern" Text="Phone number must contain 6 to 20 digits" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="6">
+                            <RadzenFormField Text="PESEL" Style="width:100%;">
+                                <RadzenTextBox Name="Pesel" @bind-Value="_register.Pesel" MaxLength="11" Style="width:100%;" />
+                            </RadzenFormField>
+                            <RadzenRequiredValidator Component="Pesel" Text="PESEL is required" />
+                            <RadzenRegexValidator Component="Pesel" Pattern="@PeselPattern" Text="PESEL must contain exactly 11 digits" />
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <RadzenFormField Text="Address" Style="width:100%;">
+                        <RadzenTextBox Name="Address" @bind-Value="_register.Address" Style="width:100%;" />
+                    </RadzenFormField>
+                    <RadzenRequiredValidator Component="Address" Text="Address is required" />
+
+                    <RadzenRow Gap="12px">
+                        <RadzenColumn Size="12" SizeMD="6">
+                            <RadzenFormField Text="Date of Birth" Style="width:100%;">
+                                <RadzenDatePicker Name="DateOfBirth"
+                                                  @bind-Value="_register.DateOfBirth"
+                                                  DateFormat="dd.MM.yyyy"
+                                                  Max="@DateTime.Today.AddDays(-1)"
+                                                  Style="width:100%;" />
+                            </RadzenFormField>
+                            <RadzenRequiredValidator Component="DateOfBirth" Text="Date of birth is required" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="6">
+                            <RadzenFormField Text="Gender" Style="width:100%;">
+                                <RadzenDropDown Name="Gender"
+                                                Data="@_genderOptions"
+                                                TextProperty="Text"
+                                                ValueProperty="Value"
+                                                @bind-Value="_register.Gender"
+                                                Style="width:100%;" />
+                            </RadzenFormField>
+                            <RadzenRequiredValidator Component="Gender" Text="Gender is required" />
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <RadzenFormField Text="Password" Style="width:100%;">
+                        <RadzenPassword Name="RegisterPassword" @bind-Value="_register.Password" Style="width:100%;" />
+                    </RadzenFormField>
+                    <RadzenRequiredValidator Component="RegisterPassword" Text="Password is required" />
+                    <RadzenLengthValidator Component="RegisterPassword" Min="10" Text="Password must contain at least 10 characters" />
+
+                    <RadzenFormField Text="Confirm Password" Style="width:100%;">
+                        <RadzenPassword Name="ConfirmPassword" @bind-Value="_register.ConfirmPassword" Style="width:100%;" />
+                    </RadzenFormField>
+                    <RadzenRequiredValidator Component="ConfirmPassword" Text="Confirm password is required" />
+                    <RadzenLengthValidator Component="ConfirmPassword" Min="10" Text="Confirm password must contain at least 10 characters" />
+                    <RadzenCompareValidator Component="ConfirmPassword" Value="@_register.Password" Text="Passwords must match" />
+
+                    @if (!string.IsNullOrWhiteSpace(_error))
+                    {
+                        <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" Shade="Shade.Lighter">
+                            @_error
+                        </RadzenAlert>
+                    }
+
+                    <RadzenButton Text="Create Account"
+                                  Icon="person_add"
+                                  ButtonType="ButtonType.Submit"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  Disabled="_loading"
+                                  Style="width:100%; height:42px;" />
+
+                    <RadzenButton Text="Back to Login"
+                                  Icon="arrow_back"
+                                  ButtonStyle="ButtonStyle.Light"
+                                  Click="@ShowLogin"
+                                  Style="width:100%; height:40px;" />
+                </RadzenStack>
+            </RadzenTemplateForm>
+        }
     </RadzenCard>
 </RadzenStack>
 
 @code {
+    private const string PhoneNumberPattern = @"^\d{6,20}$";
+    private const string PeselPattern = @"^\d{11}$";
+
     private LoginDto _login = new();
+    private PatientRegistrationForm _register = NewRegisterForm();
     private bool _loading;
+    private bool _registerMode;
     private string? _error;
+
+    private readonly List<GenderOption> _genderOptions = new()
+    {
+        new("Female", Gender.Female),
+        new("Male", Gender.Male),
+        new("Other", Gender.Other)
+    };
 
     private async Task Login()
     {
@@ -71,5 +200,93 @@
         AppState.SetUser(result);
         NotificationService.Notify(NotificationSeverity.Success, "Welcome", $"Hello, {result.FirstName}.", 3000);
         Nav.NavigateTo("/patient/home");
+    }
+
+    private async Task Register()
+    {
+        _loading = true;
+        _error = null;
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(_register.PhoneNumber, PhoneNumberPattern))
+        {
+            _error = "Phone number must contain 6 to 20 digits.";
+            _loading = false;
+            return;
+        }
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(_register.Pesel, PeselPattern))
+        {
+            _error = "PESEL must contain exactly 11 digits.";
+            _loading = false;
+            return;
+        }
+
+        if (_register.Password != _register.ConfirmPassword)
+        {
+            _error = "Passwords must match.";
+            _loading = false;
+            return;
+        }
+
+        var patient = new PatientCreateDto
+        {
+            FirstName = _register.FirstName,
+            LastName = _register.LastName,
+            Email = _register.Email,
+            PhoneNumber = _register.PhoneNumber,
+            Password = _register.Password,
+            Pesel = _register.Pesel,
+            DateOfBirth = _register.DateOfBirth,
+            Address = _register.Address,
+            Gender = _register.Gender
+        };
+
+        var result = await PatientService.RegisterAsync(patient);
+        if (!result.Success)
+        {
+            _error = result.Error ?? "Could not create patient account.";
+            _loading = false;
+            return;
+        }
+
+        NotificationService.Notify(NotificationSeverity.Success, "Account Created", "You can now log in with your email and password.", 4000);
+        _login = new LoginDto { Email = _register.Email };
+        _register = NewRegisterForm();
+        _registerMode = false;
+        _loading = false;
+    }
+
+    private void ShowRegister()
+    {
+        _error = null;
+        _registerMode = true;
+    }
+
+    private void ShowLogin()
+    {
+        _error = null;
+        _registerMode = false;
+    }
+
+    private static PatientRegistrationForm NewRegisterForm() => new()
+    {
+        DateOfBirth = DateTime.Today.AddYears(-18),
+        Gender = Gender.Other
+    };
+
+    private record GenderOption(string Text, Gender Value);
+
+    private sealed class PatientRegistrationForm
+    {
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string ConfirmPassword { get; set; } = string.Empty;
+        public string Pesel { get; set; } = string.Empty;
+        public DateTime DateOfBirth { get; set; }
+        public string Address { get; set; } = string.Empty;
+        public Gender Gender { get; set; }
     }
 }

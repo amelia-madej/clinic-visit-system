@@ -15,6 +15,7 @@ builder.Services.AddRadzenComponents();
 builder.Services.AddScoped<IVisitService, VisitService>();
 builder.Services.AddScoped<IAuthClientService, AuthClientService>();
 builder.Services.AddScoped<IUserClientService, UserClientService>();
+builder.Services.AddScoped<IPatientClientService, PatientClientService>();
 builder.Services.AddScoped<AppStateService>();
 
 
