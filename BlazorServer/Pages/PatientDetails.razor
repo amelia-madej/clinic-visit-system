@@ -15,6 +15,16 @@
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
     <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
                    OnClick='() => Nav.NavigateTo("/patients")' />
+    <MudAvatar Size="Size.Large" Color="Color.Primary">
+        @if (string.IsNullOrWhiteSpace(_patient.User.PhotoDataUrl))
+        {
+            <MudIcon Icon="@Icons.Material.Filled.Person" />
+        }
+        else
+        {
+            <MudImage Src="@_patient.User.PhotoDataUrl" Alt="Patient photo" ObjectFit="ObjectFit.Cover" />
+        }
+    </MudAvatar>
     <MudText Typo="Typo.h4">
         @_patient.User.FirstName @_patient.User.LastName
     </MudText>

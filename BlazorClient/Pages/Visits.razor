@@ -5,7 +5,7 @@
 @inject NavigationManager Nav
 @inject NotificationService NotificationService
 
-<PageTitle>Wizyty</PageTitle>
+<PageTitle>My Visits</PageTitle>
 
 <RadzenStack Gap="10px" Style="width:100%">
 
@@ -79,15 +79,30 @@
                                       Title="Doctor">
 
                     <Template Context="visit">
-                        <RadzenStack Gap="0">
+                        <RadzenStack Orientation="Orientation.Horizontal"
+                                     AlignItems="AlignItems.Center"
+                                     Gap="10px">
                             @if (visit.Doctor is not null)
                             {
-                                <RadzenText Text="@($"{visit.Doctor.FirstName} {visit.Doctor.LastName}")"
-                                            TextStyle="TextStyle.Body1" />
+                                @if (string.IsNullOrWhiteSpace(visit.Doctor.PhotoDataUrl))
+                                {
+                                    <div class="person-photo-placeholder small">
+                                        <RadzenIcon Icon="person" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <img class="person-photo small" src="@visit.Doctor.PhotoDataUrl" alt="Doctor photo" />
+                                }
 
-                                <RadzenText Text="@visit.Doctor.Specialization"
-                                            TextStyle="TextStyle.Caption"
-                                            Style="color:gray;" />
+                                <RadzenStack Gap="0">
+                                    <RadzenText Text="@($"{visit.Doctor.FirstName} {visit.Doctor.LastName}")"
+                                                TextStyle="TextStyle.Body1" />
+
+                                    <RadzenText Text="@visit.Doctor.Specialization"
+                                                TextStyle="TextStyle.Caption"
+                                                Style="color:gray;" />
+                                </RadzenStack>
                             }
                         </RadzenStack>
                     </Template>
@@ -188,7 +203,7 @@
                               ButtonStyle="ButtonStyle.Light"
                               Click="@CloseModal" />
 
-                <RadzenButton Text="Set"
+                <RadzenButton Text="Schedule"
                               Icon="check"
                               ButtonStyle="ButtonStyle.Primary"
                               Click="@Submit"
@@ -280,13 +295,13 @@
         {
             _visits = await VisitService
                 .GetByPatientIdAsync(AppState.CurrentPatient.PatientId);
-            NotificationService.Notify(NotificationSeverity.Success,"Success","Visit scheduled successfully.",4000);
+            NotificationService.Notify(NotificationSeverity.Success, "Success", "Visit scheduled successfully.", 4000);
 
             CloseModal();
         }
         else
         {
-            NotificationService.Notify(NotificationSeverity.Error,"Error","Failed to schedule visit.",4000);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Failed to schedule visit.", 4000);
 
             _formError = "Failed to schedule a visit. Please try again.";
         }

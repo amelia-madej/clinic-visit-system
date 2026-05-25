@@ -32,12 +32,36 @@
         <PropertyColumn Property="v => v.VisitDateTime" Title="Date & Time" Format="dd/MM/yyyy HH:mm" Sortable="true" />
         <TemplateColumn Title="Patient" Sortable="false">
             <CellTemplate>
-                @context.Item.Patient?.FirstName @context.Item.Patient?.LastName
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudAvatar Size="Size.Small" Color="Color.Primary">
+                        @if (string.IsNullOrWhiteSpace(context.Item.Patient?.PhotoDataUrl))
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                        }
+                        else
+                        {
+                            <MudImage Src="@context.Item.Patient.PhotoDataUrl" Alt="Patient photo" ObjectFit="ObjectFit.Cover" />
+                        }
+                    </MudAvatar>
+                    <MudText>@context.Item.Patient?.FirstName @context.Item.Patient?.LastName</MudText>
+                </MudStack>
             </CellTemplate>
         </TemplateColumn>
         <TemplateColumn Title="Doctor" Sortable="false">
             <CellTemplate>
-                @context.Item.Doctor?.FirstName @context.Item.Doctor?.LastName
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudAvatar Size="Size.Small" Color="Color.Secondary">
+                        @if (string.IsNullOrWhiteSpace(context.Item.Doctor?.PhotoDataUrl))
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                        }
+                        else
+                        {
+                            <MudImage Src="@context.Item.Doctor.PhotoDataUrl" Alt="Doctor photo" ObjectFit="ObjectFit.Cover" />
+                        }
+                    </MudAvatar>
+                    <MudText>@context.Item.Doctor?.FirstName @context.Item.Doctor?.LastName</MudText>
+                </MudStack>
             </CellTemplate>
         </TemplateColumn>
         <PropertyColumn Property="v => v.VisitType" Title="Type" Sortable="true" />

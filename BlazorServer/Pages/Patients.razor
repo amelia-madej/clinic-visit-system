@@ -28,6 +28,20 @@
              Dense="true"
              Loading="_loading">
     <Columns>
+        <TemplateColumn Title="" Sortable="false" Filterable="false">
+            <CellTemplate>
+                <MudAvatar Size="Size.Medium" Color="Color.Primary">
+                    @if (string.IsNullOrWhiteSpace(context.Item.PhotoDataUrl))
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                    }
+                    else
+                    {
+                        <MudImage Src="@context.Item.PhotoDataUrl" Alt="Patient photo" ObjectFit="ObjectFit.Cover" />
+                    }
+                </MudAvatar>
+            </CellTemplate>
+        </TemplateColumn>
         <PropertyColumn Property="p => p.LastName"  Title="Last Name"  Sortable="true" />
         <PropertyColumn Property="p => p.FirstName" Title="First Name" Sortable="true" />
         <PropertyColumn Property="p => p.Age"       Title="Age"        Sortable="true" />

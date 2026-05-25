@@ -124,7 +124,21 @@ else
                     </HeaderContent>
                     <RowTemplate>
                         <MudTd DataLabel="Date">@context.VisitDateTime.ToString("dd.MM.yyyy HH:mm")</MudTd>
-                        <MudTd DataLabel="Patient">@context.Patient?.FirstName @context.Patient?.LastName</MudTd>
+                        <MudTd DataLabel="Patient">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudAvatar Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Primary">
+                                    @if (string.IsNullOrWhiteSpace(context.Patient?.PhotoDataUrl))
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Person" Size="MudBlazor.Size.Small" />
+                                    }
+                                    else
+                                    {
+                                        <MudImage Src="@context.Patient.PhotoDataUrl" Alt="Patient photo" ObjectFit="ObjectFit.Cover" />
+                                    }
+                                </MudAvatar>
+                                <MudText>@context.Patient?.FirstName @context.Patient?.LastName</MudText>
+                            </MudStack>
+                        </MudTd>
                         <MudTd DataLabel="Type">@context.VisitType</MudTd>
                         <MudTd DataLabel="Status">
                             <MudChip T="string" Color="@StatusColor(context.Status)" Size="MudBlazor.Size.Small">

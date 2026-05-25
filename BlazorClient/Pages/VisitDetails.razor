@@ -54,18 +54,44 @@
 
                 <RadzenColumn Size="6">
                     <RadzenText Text="Doctor" TextStyle="TextStyle.Caption" />
-                    <RadzenText Text="@($"{_visit.Doctor?.User.FirstName} {_visit.Doctor?.User.LastName}")"
-                                TextStyle="TextStyle.Body1"
-                                Style="font-weight:600; margin: 0" />
-                    <RadzenText Text="@_visit.Doctor?.Specialization" Style="color:gray;" />
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="10px">
+                        @if (string.IsNullOrWhiteSpace(_visit.Doctor?.User.PhotoDataUrl))
+                        {
+                            <div class="person-photo-placeholder small">
+                                <RadzenIcon Icon="person" />
+                            </div>
+                        }
+                        else
+                        {
+                            <img class="person-photo small" src="@_visit.Doctor.User.PhotoDataUrl" alt="Doctor photo" />
+                        }
+                        <RadzenStack Gap="0">
+                            <RadzenText Text="@($"{_visit.Doctor?.User.FirstName} {_visit.Doctor?.User.LastName}")"
+                                        TextStyle="TextStyle.Body1"
+                                        Style="font-weight:600; margin: 0" />
+                            <RadzenText Text="@_visit.Doctor?.Specialization" Style="color:gray;" />
+                        </RadzenStack>
+                    </RadzenStack>
                 </RadzenColumn>
 
                 <RadzenColumn Size="6">
                     <RadzenStack Gap="4px">
                         <RadzenText Text="Patient" TextStyle="TextStyle.Caption" />
-                        <RadzenText Text="@($"{_visit.Patient?.User?.FirstName} {_visit.Patient?.User?.LastName}")"
-                                    TextStyle="TextStyle.Body1"
-                                    Style="font-weight:600; margin: 0" />
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="10px">
+                            @if (string.IsNullOrWhiteSpace(_visit.Patient?.User?.PhotoDataUrl))
+                            {
+                                <div class="person-photo-placeholder small">
+                                    <RadzenIcon Icon="person" />
+                                </div>
+                            }
+                            else
+                            {
+                                <img class="person-photo small" src="@_visit.Patient.User.PhotoDataUrl" alt="Patient photo" />
+                            }
+                            <RadzenText Text="@($"{_visit.Patient?.User?.FirstName} {_visit.Patient?.User?.LastName}")"
+                                        TextStyle="TextStyle.Body1"
+                                        Style="font-weight:600; margin: 0" />
+                        </RadzenStack>
                         <RadzenText Text="@_visit.Patient?.PESEL"
                                     Style="color:gray;" />
                     </RadzenStack>

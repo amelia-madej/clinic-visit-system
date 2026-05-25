@@ -68,9 +68,16 @@
                                      AlignItems="AlignItems.Center"
                                      Gap="12px">
 
-                            <div class="doctor-avatar">
-                                @doctor.FirstName.First()@doctor.LastName.First()
-                            </div>
+                            @if (string.IsNullOrWhiteSpace(doctor.PhotoDataUrl))
+                            {
+                                <div class="person-photo-placeholder">
+                                    <RadzenIcon Icon="person" />
+                                </div>
+                            }
+                            else
+                            {
+                                <img class="person-photo" src="@doctor.PhotoDataUrl" alt="Doctor photo" />
+                            }
 
                             <RadzenStack Gap="0">
 

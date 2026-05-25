@@ -31,18 +31,42 @@
         <MudGrid>
             <MudItem xs="12" sm="6">
                 <MudText Typo="Typo.overline" Color="Color.Secondary">Patient</MudText>
-                <MudText Typo="Typo.h6">
-                    @_visit.Patient?.User.FirstName @_visit.Patient?.User.LastName
-                </MudText>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudAvatar Size="Size.Medium" Color="Color.Primary">
+                        @if (string.IsNullOrWhiteSpace(_visit.Patient?.User.PhotoDataUrl))
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                        }
+                        else
+                        {
+                            <MudImage Src="@_visit.Patient.User.PhotoDataUrl" Alt="Patient photo" ObjectFit="ObjectFit.Cover" />
+                        }
+                    </MudAvatar>
+                    <MudText Typo="Typo.h6">
+                        @_visit.Patient?.User.FirstName @_visit.Patient?.User.LastName
+                    </MudText>
+                </MudStack>
                 <MudText Typo="Typo.body2" Color="Color.Secondary">
                     PESEL: @_visit.Patient?.PESEL
                 </MudText>
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudText Typo="Typo.overline" Color="Color.Secondary">Doctor</MudText>
-                <MudText Typo="Typo.h6">
-                    Dr. @_visit.Doctor?.User.FirstName @_visit.Doctor?.User.LastName
-                </MudText>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudAvatar Size="Size.Medium" Color="Color.Secondary">
+                        @if (string.IsNullOrWhiteSpace(_visit.Doctor?.User.PhotoDataUrl))
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                        }
+                        else
+                        {
+                            <MudImage Src="@_visit.Doctor.User.PhotoDataUrl" Alt="Doctor photo" ObjectFit="ObjectFit.Cover" />
+                        }
+                    </MudAvatar>
+                    <MudText Typo="Typo.h6">
+                        Dr. @_visit.Doctor?.User.FirstName @_visit.Doctor?.User.LastName
+                    </MudText>
+                </MudStack>
                 <MudText Typo="Typo.body2" Color="Color.Secondary">
                     @_visit.Doctor?.Specialization
                 </MudText>

@@ -14,7 +14,7 @@ else
 {
     <RadzenStack Gap="24px">
 
-        <!-- POWITANIE -->
+        <!-- WELCOME -->
         <RadzenStack Gap="4px">
             <RadzenText TextStyle="TextStyle.H4"
                         Style="color: var(--rz-primary-dark); margin:0">
@@ -26,7 +26,7 @@ else
             </RadzenText>
         </RadzenStack>
 
-        <!-- KARTY STATYSTYK -->
+        <!-- STATISTICS CARDS -->
         <RadzenRow Gap="16px">
             <RadzenColumn Size="12" SizeMD="3">
                 <RadzenCard Style="border-left: 4px solid #748cab;">
@@ -62,10 +62,10 @@ else
             </RadzenColumn>
         </RadzenRow>
 
-        <!-- WYKRES + NADCHODZĄCE -->
+        <!-- CHART AND UPCOMING VISITS -->
         <RadzenRow Gap="20px">
 
-            <!-- WYKRES -->
+            <!-- CHART -->
             <RadzenColumn Size="12" SizeMD="6">
                 <RadzenCard>
                     <RadzenText TextStyle="TextStyle.Subtitle1"
@@ -93,7 +93,7 @@ else
                 </RadzenCard>
             </RadzenColumn>
 
-            <!-- NADCHODZĄCE WIZYTY -->
+            <!-- UPCOMING VISITS -->
             <RadzenColumn Size="12" SizeMD="6">
                 <RadzenCard>
                     <RadzenStack Gap="12px">
@@ -128,10 +128,22 @@ else
                                             </RadzenText>
                                             @if (visit.Doctor is not null)
                                             {
-                                                <RadzenText TextStyle="TextStyle.Caption"
-                                                            Style="color:gray; margin:0">
-                                                    dr @visit.Doctor.LastName · @visit.VisitDateTime.ToString("HH:mm")
-                                                </RadzenText>
+                                                <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="8px">
+                                                    @if (string.IsNullOrWhiteSpace(visit.Doctor.PhotoDataUrl))
+                                                    {
+                                                        <div class="person-photo-placeholder tiny">
+                                                            <RadzenIcon Icon="person" />
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <img class="person-photo tiny" src="@visit.Doctor.PhotoDataUrl" alt="Doctor photo" />
+                                                    }
+                                                    <RadzenText TextStyle="TextStyle.Caption"
+                                                                Style="color:gray; margin:0">
+                                                        Dr. @visit.Doctor.LastName - @visit.VisitDateTime.ToString("HH:mm")
+                                                    </RadzenText>
+                                                </RadzenStack>
                                             }
                                         </RadzenStack>
                                         <RadzenIcon Icon="chevron_right" Style="color:#748cab;" />
@@ -140,7 +152,7 @@ else
                             }
                         }
 
-                        <RadzenButton Text="Umów wizytę"
+                        <RadzenButton Text="Schedule a Visit"
                                       Icon="add"
                                       ButtonStyle="ButtonStyle.Primary"
                                       Size="ButtonSize.Small"

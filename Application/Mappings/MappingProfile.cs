@@ -18,6 +18,7 @@ namespace Application.Mapping
             CreateMap<Patient, PatientListItemDto>()
                 .ForMember(d => d.FirstName, opt => opt.MapFrom(s => s.User.FirstName))
                 .ForMember(d => d.LastName, opt => opt.MapFrom(s => s.User.LastName))
+                .ForMember(d => d.PhotoDataUrl, opt => opt.MapFrom(s => s.User.PhotoDataUrl))
                 .ForMember(d => d.DateOfBirth, opt => opt.MapFrom(s => s.DateOfBirth))
                 .ForMember(d => d.Age, opt => opt.MapFrom(s =>
                     DateTime.UtcNow.Year - s.DateOfBirth.Year - (DateTime.UtcNow < s.DateOfBirth.AddYears(DateTime.UtcNow.Year - s.DateOfBirth.Year) ? 1 : 0)))
@@ -49,6 +50,7 @@ namespace Application.Mapping
             CreateMap<Doctor, DoctorListItemDto>()
                 .ForMember(d => d.FirstName, opt => opt.MapFrom(s => s.User.FirstName))
                 .ForMember(d => d.LastName, opt => opt.MapFrom(s => s.User.LastName))
+                .ForMember(d => d.PhotoDataUrl, opt => opt.MapFrom(s => s.User.PhotoDataUrl))
                 .ForMember(d => d.Specialization, opt => opt.MapFrom(s => s.Specialization));
 
             CreateMap<DoctorCreateDto, User>()

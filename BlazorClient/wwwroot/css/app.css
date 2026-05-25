@@ -1,4 +1,4 @@
-.valid.modified:not([type=checkbox]) {
+ï»¿.valid.modified:not([type=checkbox]) {
     outline: 1px solid #26b050;
 }
 
@@ -77,11 +77,11 @@ code {
 }
 
 :root {
-    /* Kolory g³ówne */
+    /* Main colors */
     --rz-primary: #134074;
     --rz-primary-dark: #0b2545;
     --rz-primary-light: #748cab;
-    /* T³o strony */
+    /* Page background */
     --rz-layout-body-background-color: white;
     /* Sidebar */
     --rz-sidebar-background-color: #748cab;
@@ -221,3 +221,56 @@ code {
         color: gray;
         font-weight: 500;
     }
+.person-photo,
+.person-photo-placeholder {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex: 0 0 auto;
+    border: 2px solid #d8e2f1;
+}
+
+.person-photo-placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef3f8;
+    color: var(--rz-primary-dark);
+}
+
+.person-photo-placeholder .rz-icon {
+    font-size: 22px;
+}
+
+.person-photo.small,
+.person-photo-placeholder.small {
+    width: 34px;
+    height: 34px;
+}
+
+.person-photo-placeholder.small .rz-icon {
+    font-size: 18px;
+}
+
+.person-photo.tiny,
+.person-photo-placeholder.tiny {
+    width: 26px;
+    height: 26px;
+    border-width: 1px;
+}
+
+.person-photo-placeholder.tiny .rz-icon {
+    font-size: 15px;
+}
+
+.person-photo.large,
+.person-photo-placeholder.large {
+    width: 86px;
+    height: 86px;
+}
+
+.person-photo-placeholder.large .rz-icon {
+    font-size: 42px;
+}
+
