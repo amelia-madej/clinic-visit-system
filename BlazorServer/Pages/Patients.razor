@@ -4,6 +4,7 @@
 @inject ISnackbar Snackbar
 @inject AppStateService AppState
 @inject NavigationManager Nav
+@inject ILogger<Patients> Logger
 @implements IDisposable
 
 <PageTitle>Patients</PageTitle>
@@ -34,7 +35,7 @@
             <CellTemplate>
                 @(context.Item.LastVisitDate.HasValue
                     ? context.Item.LastVisitDate.Value.ToString("dd/MM/yyyy")
-                    : "—")
+                    : "No date")
             </CellTemplate>
         </TemplateColumn>
         <TemplateColumn Title="" Sortable="false">
@@ -100,7 +101,13 @@
 
     protected override void OnInitialized()
     {
-        if (AppState.CurrentDoctor is null) { Nav.NavigateTo("/"); return; }
+        if (AppState.CurrentDoctor is null)
+        {
+            Logger.LogWarning("Patients page access denied. No current doctor in app state.");
+            Nav.NavigateTo("/");
+            return;
+        }
+        Logger.LogInformation("Patients page opened for doctor id {DoctorId}.", AppState.CurrentDoctor.DoctorId);
         LoadPatients();
         AppState.OnChange += OnAppStateChanged;
     }
@@ -108,28 +115,39 @@
     private void LoadPatients()
     {
         _loading = true;
-        if (AppState.CurrentDoctor is null)
+        Logger.LogDebug("Started loading patients page data.");
+        try
         {
-            _patients = PatientService.GetAll();
+            if (AppState.CurrentDoctor is null)
+            {
+                _patients = PatientService.GetAll();
+            }
+            else
+            {
+                // Derive the patient list from this doctor's visits
+                var visits = VisitService.GetByDoctorId(AppState.CurrentDoctor.DoctorId);
+                var patientIds = visits
+                    .Where(v => v.Patient is not null)
+                    .Select(v => v.Patient!.PatientId)
+                    .Distinct()
+                    .ToHashSet();
+                _patients = PatientService.GetAll()
+                    .Where(p => patientIds.Contains(p.PatientId))
+                    .ToList();
+            }
         }
-        else
+        catch (Exception ex)
         {
-            // Derive the patient list from this doctor's visits
-            var visits = VisitService.GetByDoctorId(AppState.CurrentDoctor.DoctorId);
-            var patientIds = visits
-                .Where(v => v.Patient is not null)
-                .Select(v => v.Patient!.PatientId)
-                .Distinct()
-                .ToHashSet();
-            _patients = PatientService.GetAll()
-                .Where(p => patientIds.Contains(p.PatientId))
-                .ToList();
+            Logger.LogError(ex, "Failed to load patients page data.");
+            throw;
         }
         _loading = false;
+        Logger.LogInformation("Completed loading patients page data. Patients: {PatientCount}", _patients.Count);
     }
 
     private void OnAppStateChanged()
     {
+        Logger.LogDebug("App state changed on patients page. Reloading data.");
         LoadPatients();
         InvokeAsync(StateHasChanged);
     }
@@ -141,21 +159,36 @@
 
     private void OpenCreateDialog()
     {
+        Logger.LogInformation("Opening create patient dialog.");
         _form    = new PatientCreateDto();
         _formDob = DateTime.Today.AddYears(-30);
         _createDialogOpen = true;
     }
 
-    private void CloseCreateDialog() => _createDialogOpen = false;
+    private void CloseCreateDialog()
+    {
+        Logger.LogInformation("Closing create patient dialog.");
+        _createDialogOpen = false;
+    }
 
     private void CreatePatient()
     {
         _form.DateOfBirth = _formDob ?? DateTime.Today;
 
-        PatientService.Create(_form);
-        LoadPatients();
+        try
+        {
+            Logger.LogInformation("Started creating patient from BlazorServer UI.");
+            PatientService.Create(_form);
+            LoadPatients();
 
-        _createDialogOpen = false;
-        Snackbar.Add("Patient created successfully.", Severity.Success);
+            _createDialogOpen = false;
+            Logger.LogInformation("Patient created successfully from BlazorServer UI.");
+            Snackbar.Add("Patient created successfully.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to create patient from BlazorServer UI.");
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
     }
 }

@@ -4,6 +4,7 @@
 @inject IMedicationService MedicationService
 @inject ISnackbar Snackbar
 @inject NavigationManager Nav
+@inject ILogger<VisitDetails> Logger
 
 <PageTitle>Visit Details</PageTitle>
 
@@ -302,23 +303,52 @@
 
     protected override void OnInitialized()
     {
-        _medications = MedicationService.GetAll();
+        Logger.LogInformation("Visit details page opened for visit id {VisitId}.", Id);
+        Logger.LogDebug("Started loading medication list for visit completion form.");
+        try
+        {
+            _medications = MedicationService.GetAll();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load medication list for visit details page.");
+            throw;
+        }
         LoadVisit();
     }
 
     private void LoadVisit()
     {
-        _visit = VisitService.GetById(Id);
+        Logger.LogDebug("Started loading visit details for visit id {VisitId}.", Id);
+        try
+        {
+            _visit = VisitService.GetById(Id);
 
-        _prescriptions = _visit?.MedicalRecord?.Prescriptions
-            .Select(p => PrescriptionService.GetById(p.Id))
-            .Where(p => p is not null)
-            .Cast<PrescriptionDetailsDto>()
-            .ToList() ?? new();
+            _prescriptions = _visit?.MedicalRecord?.Prescriptions
+                .Select(p => PrescriptionService.GetById(p.Id))
+                .Where(p => p is not null)
+                .Cast<PrescriptionDetailsDto>()
+                .ToList() ?? new();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load visit details for visit id {VisitId}.", Id);
+            throw;
+        }
+
+        if (_visit is null)
+        {
+            Logger.LogWarning("Visit details not found for visit id {VisitId}.", Id);
+        }
+        else
+        {
+            Logger.LogInformation("Completed loading visit details for visit id {VisitId}. Prescriptions: {PrescriptionCount}", Id, _prescriptions.Count);
+        }
     }
 
     private void OpenCompleteDialog()
     {
+        Logger.LogInformation("Opening complete visit dialog for visit id {VisitId}.", Id);
         _completeForm     = new VisitCompleteDto();
         _includeSickLeave = false;
         _sickLeaveStart   = DateTime.Today;
@@ -327,19 +357,35 @@
         _completeDialogOpen = true;
     }
 
-    private void CloseCompleteDialog() => _completeDialogOpen = false;
+    private void CloseCompleteDialog()
+    {
+        Logger.LogInformation("Closing complete visit dialog for visit id {VisitId}.", Id);
+        _completeDialogOpen = false;
+    }
 
-    private void AddPrescription() =>
+    private void AddPrescription()
+    {
+        Logger.LogDebug("Adding prescription section in complete visit dialog for visit id {VisitId}.", Id);
         _completeForm.Prescriptions.Add(new PrescriptionCreateDto());
+    }
 
-    private void RemovePrescription(int index) =>
+    private void RemovePrescription(int index)
+    {
+        Logger.LogDebug("Removing prescription section {Index} in complete visit dialog for visit id {VisitId}.", index, Id);
         _completeForm.Prescriptions.RemoveAt(index);
+    }
 
-    private void AddItem(int rxIndex) =>
+    private void AddItem(int rxIndex)
+    {
+        Logger.LogDebug("Adding medication item to prescription section {Index} for visit id {VisitId}.", rxIndex, Id);
         _completeForm.Prescriptions[rxIndex].Items.Add(new PrescriptionItemCreateDto());
+    }
 
-    private void RemoveItem(int rxIndex, int itemIndex) =>
+    private void RemoveItem(int rxIndex, int itemIndex)
+    {
+        Logger.LogDebug("Removing medication item {ItemIndex} from prescription section {PrescriptionIndex} for visit id {VisitId}.", itemIndex, rxIndex, Id);
         _completeForm.Prescriptions[rxIndex].Items.RemoveAt(itemIndex);
+    }
 
     private void CompleteVisit()
     {
@@ -350,6 +396,7 @@
 
             if (end < start)
             {
+                Logger.LogWarning("Invalid sick leave date range while completing visit id {VisitId}. Start: {StartDate}, End: {EndDate}", Id, start, end);
                 Snackbar.Add("Sick leave end date must be on or after the start date.", Severity.Warning);
                 return;
             }
@@ -364,15 +411,23 @@
 
         try
         {
+            Logger.LogInformation("Started completing visit id {VisitId} from BlazorServer UI.", Id);
             VisitService.CompleteVisit(Id, _completeForm);
             _completeDialogOpen = false;
             Snackbar.Add("Visit completed.", Severity.Success);
             LoadVisit();
+            Logger.LogInformation("Visit id {VisitId} completed successfully from BlazorServer UI.", Id);
         }
         catch (global::FluentValidation.ValidationException ex)
         {
             var message = string.Join(" ", ex.Errors.Select(e => e.ErrorMessage));
+            Logger.LogWarning(ex, "Validation failed while completing visit id {VisitId}.", Id);
             Snackbar.Add(message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to complete visit id {VisitId} from BlazorServer UI.", Id);
+            Snackbar.Add(ex.Message, Severity.Error);
         }
     }
 

@@ -3,6 +3,7 @@
 @inject AppStateService AppState
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
+@inject ILogger<Profile> Logger
 
 <PageTitle>My Profile</PageTitle>
 
@@ -95,15 +96,18 @@ else if (_user is not null)
     {
         if (AppState.CurrentUser is null)
         {
+            Logger.LogWarning("Profile page access denied. No authenticated user in app state.");
             Nav.NavigateTo("/");
             return;
         }
 
+        Logger.LogInformation("Loading profile page for user id {UserId}.", AppState.CurrentUser.UserId);
         LoadUser();
     }
 
     private void LoadUser()
     {
+        Logger.LogDebug("Loading profile data for user id {UserId}.", AppState.CurrentUser?.UserId);
         _user = UserService.GetById(AppState.CurrentUser!.UserId);
 
         if (_user is not null)
@@ -126,6 +130,7 @@ else if (_user is not null)
     private void Save()
     {
         _saving = true;
+        Logger.LogInformation("Saving profile changes for user id {UserId}.", _form.UserId);
 
         try
         {
@@ -135,6 +140,7 @@ else if (_user is not null)
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to save profile changes for user id {UserId}.", _form.UserId);
             Snackbar.Add(ex.Message, Severity.Error);
         }
         finally
@@ -151,6 +157,7 @@ else if (_user is not null)
         var file = args.File;
         if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
         {
+            Logger.LogWarning("Photo upload rejected for user id {UserId}. Invalid content type: {ContentType}", _user.UserId, file.ContentType);
             Snackbar.Add("Select an image file.", Severity.Error);
             return;
         }
@@ -161,6 +168,7 @@ else if (_user is not null)
 
         try
         {
+            Logger.LogInformation("Uploading profile photo for user id {UserId}.", _user.UserId);
             UserService.UpdatePhoto(new UpdateUserPhotoDto
             {
                 UserId = _user.UserId,
@@ -172,6 +180,7 @@ else if (_user is not null)
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to upload profile photo for user id {UserId}.", _user.UserId);
             Snackbar.Add(ex.Message, Severity.Error);
         }
     }
@@ -183,12 +192,14 @@ else if (_user is not null)
 
         try
         {
+            Logger.LogInformation("Removing profile photo for user id {UserId}.", _user.UserId);
             UserService.DeletePhoto(_user.UserId);
             LoadUser();
             Snackbar.Add("Profile photo removed.", Severity.Success);
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to remove profile photo for user id {UserId}.", _user.UserId);
             Snackbar.Add(ex.Message, Severity.Error);
         }
     }

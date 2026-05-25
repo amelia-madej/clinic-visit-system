@@ -9,9 +9,18 @@ using Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
+using NLog;
+using NLog.Web;
 using SharedKernel.DTOs;
 
-var builder = WebApplication.CreateBuilder(args);
+var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+logger.Debug("BlazorServer startup initialized.");
+
+try
+{
+    var builder = WebApplication.CreateBuilder(args);
+    builder.Logging.ClearProviders();
+    builder.Host.UseNLog();
 
 // Blazor Server
 builder.Services.AddRazorPages();
@@ -24,7 +33,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 var dbPath = Path.GetFullPath(
     Path.Combine(builder.Environment.ContentRootPath, "..", "ClinicVisitSystem.db"));
-// rejestracja kontekstu bazy w kontenerze IoC
+// Registers the database context in the dependency injection container.
 // var sqliteConnectionString = "Data Source=Kiosk.WebAPI.Logger.db";
 var sqliteConnectionString = $"Data Source = {dbPath}";
 builder.Services.AddDbContext<ClinicDbContext>(options =>
@@ -81,6 +90,7 @@ builder.Services.AddScoped<ISickLeaveService, SickLeaveService>();
 builder.Services.AddScoped<IAnomalyDetectionService, AnomalyDetectionService>();
 
 var app = builder.Build();
+app.Logger.LogInformation("BlazorServer application starting.");
 
 if (!app.Environment.IsDevelopment())
 {
@@ -98,7 +108,19 @@ app.MapFallbackToPage("/_Host");
 using (var scope = app.Services.CreateScope())
 {
     var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
+    app.Logger.LogInformation("Ensuring baseline anomaly data.");
     seeder.EnsureBaselineAnomalyData();
 }
 
+app.Logger.LogInformation("BlazorServer application configured. Running host.");
 app.Run();
+}
+catch (Exception exception)
+{
+    logger.Error(exception, "Stopped BlazorServer because of exception");
+    throw;
+}
+finally
+{
+    NLog.LogManager.Shutdown();
+}

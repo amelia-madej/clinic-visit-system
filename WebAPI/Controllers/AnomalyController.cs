@@ -1,4 +1,4 @@
-using Application.Services;
+﻿using Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.DTOs;
 
@@ -27,17 +27,18 @@ namespace WebAPI.Controllers
                 var periodEnd = (to ?? DateTime.Today).Date;
                 var periodStart = (from ?? periodEnd.AddDays(-30)).Date;
 
-                _logger.LogDebug("Rozpoczęto wykrywanie anomalii.");
+                _logger.LogDebug("Started anomaly detection.");
                 var result = _anomalyDetectionService.DetectAnomalies(periodStart, periodEnd);
-                _logger.LogDebug("Zakończono wykrywanie anomalii.");
+                _logger.LogDebug("Completed anomaly detection.");
 
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Błąd podczas wykrywania anomalii.");
+                _logger.LogError(ex, "Error while detecting anomalies.");
                 return BadRequest(ex.Message);
             }
         }
     }
 }
+

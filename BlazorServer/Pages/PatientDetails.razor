@@ -1,6 +1,7 @@
 @page "/patients/{Id:int}"
 @inject IPatientService PatientService
 @inject NavigationManager Nav
+@inject ILogger<PatientDetails> Logger
 
 <PageTitle>Patient Details</PageTitle>
 
@@ -99,7 +100,24 @@ else
 
     protected override void OnInitialized()
     {
-        _patient = PatientService.GetById(Id);
+        Logger.LogInformation("Patient details page opened for patient id {PatientId}.", Id);
+        try
+        {
+            _patient = PatientService.GetById(Id);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load patient details for patient id {PatientId}.", Id);
+            throw;
+        }
+        if (_patient is null)
+        {
+            Logger.LogWarning("Patient details not found for patient id {PatientId}.", Id);
+        }
+        else
+        {
+            Logger.LogInformation("Completed loading patient details for patient id {PatientId}.", Id);
+        }
     }
 
     private Color StatusColor(string status) => status switch

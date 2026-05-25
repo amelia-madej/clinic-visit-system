@@ -1,5 +1,6 @@
 @page "/medications"
 @inject IMedicationService MedicationService
+@inject ILogger<Medications> Logger
 
 <PageTitle>Medications - Doctor Portal</PageTitle>
 
@@ -60,7 +61,18 @@ else
 
     protected override void OnInitialized()
     {
-        _medications = MedicationService.GetAll();
+        Logger.LogInformation("Medication catalog page opened.");
+        Logger.LogDebug("Started loading medication catalog.");
+        try
+        {
+            _medications = MedicationService.GetAll();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load medication catalog.");
+            throw;
+        }
         _loading = false;
+        Logger.LogInformation("Completed loading medication catalog. Medications: {MedicationCount}", _medications.Count);
     }
 }

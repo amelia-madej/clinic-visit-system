@@ -3,6 +3,7 @@
 @inject AppStateService AppState
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
+@inject ILogger<Index> Logger
 
 <PageTitle>Doctor Login</PageTitle>
 
@@ -61,6 +62,7 @@
     {
         _loading = true;
         _error = null;
+        Logger.LogInformation("Login attempt started for email: {Email}", _login.Email);
 
         try
         {
@@ -68,16 +70,19 @@
 
             if (result.Role != UserRole.Doctor && result.Role != UserRole.Admin)
             {
+                Logger.LogWarning("Login rejected for email: {Email}. Role {Role} is not allowed.", _login.Email, result.Role);
                 _error = "This portal is available only for doctors and administrators.";
                 return;
             }
 
             AppState.SetUser(result);
+            Logger.LogInformation("Login successful for user id {UserId} with role {Role}.", result.UserId, result.Role);
             Snackbar.Add($"Welcome, {result.FullName}.", Severity.Success);
             Nav.NavigateTo(result.Role == UserRole.Admin ? "/admin" : "/home");
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogWarning(ex, "Login failed for email: {Email}", _login.Email);
             _error = "Invalid doctor email or password.";
         }
         finally

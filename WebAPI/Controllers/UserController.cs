@@ -24,9 +24,9 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<UserDto>> GetAll()
         {
-            _logger.LogDebug("Rozpoczęto pobieranie listy wszystkich użytkowników");
+            _logger.LogDebug("Started retrieving the list of all users");
             var users = _userService.GetAll();
-            _logger.LogDebug("Zakończono pobieranie listy wszystkich użytkowników");
+            _logger.LogDebug("Completed retrieving the list of all users");
             return Ok(users);
         }
 
@@ -39,7 +39,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                _logger.LogDebug($"Rozpoczęto pobieranie użytkownika o id {id}");
+                _logger.LogDebug($"Started retrieving user with id {id}");
                 var user = _userService.GetById(id);
 
                 if (user == null)
@@ -48,7 +48,7 @@ namespace WebAPI.Controllers
                     return NotFound("User not found");
                 }
 
-                _logger.LogDebug($"Zakończono pobieranie użytkownika o id {id}");
+                _logger.LogDebug($"Completed retrieving user with id {id}");
                 return Ok(user);
             }
             catch (Exception ex)
@@ -65,17 +65,23 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<UserDto> GetByEmail(string email)
         {
+            _logger.LogDebug("Started retrieving user by email: {Email}", email);
             try
             {
                 var user = _userService.GetByEmail(email);
 
                 if (user == null)
+                {
+                    _logger.LogWarning("User by email {Email} not found", email);
                     return NotFound("User not found");
+                }
 
+                _logger.LogDebug("Completed retrieving user by email: {Email}", email);
                 return Ok(user);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving user by email: {Email}", email);
                 return BadRequest(ex.Message);
             }
         }
@@ -87,17 +93,23 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<UserDto> GetByPhoneNumber(string phoneNumber)
         {
+            _logger.LogDebug("Started retrieving user by phone number.");
             try
             {
                 var user = _userService.GetByPhoneNumber(phoneNumber);
 
                 if (user == null)
+                {
+                    _logger.LogWarning("User by phone number not found.");
                     return NotFound("User not found");
+                }
 
+                _logger.LogDebug("Completed retrieving user by phone number.");
                 return Ok(user);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving user by phone number.");
                 return BadRequest(ex.Message);
             }
         }
@@ -109,17 +121,23 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<IEnumerable<UserDto>> GetByRole(UserRole role)
         {
+            _logger.LogDebug("Started retrieving users by role {Role}", role);
             try
             {
                 var users = _userService.GetByRole(role);
 
                 if (users == null || !users.Any())
+                {
+                    _logger.LogWarning("No users found for role {Role}", role);
                     return NotFound("No users found");
+                }
 
+                _logger.LogDebug("Completed retrieving users by role {Role}", role);
                 return Ok(users);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving users by role {Role}", role);
                 return BadRequest(ex.Message);
             }
         }
@@ -130,16 +148,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Create([FromBody] CreateUserDto dto)
         {
-            _logger.LogDebug("Rozpoczęto tworzenie nowego użytkownika");
+            _logger.LogDebug("Started creating a new user");
             try
             {
                 var id = _userService.Create(dto);
-                _logger.LogDebug($"Zakończono tworzenie użytkownika o id {id}");
+                _logger.LogDebug($"Completed creating user with id {id}");
                 return CreatedAtAction(nameof(GetById), new { id }, id);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas tworzenia użytkownika: {ex.Message}");
+                _logger.LogError(ex, "Error while creating user");
                 return BadRequest(ex.Message);
             }
         }
@@ -151,7 +169,7 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Update(int id, [FromBody] UpdateUserDto dto)
         {
-            _logger.LogDebug($"Rozpoczęto aktualizację użytkownika o id {id}");
+            _logger.LogDebug($"Started updating user with id {id}");
             try
             {
                 if (id != dto.UserId)
@@ -161,12 +179,12 @@ namespace WebAPI.Controllers
                 }
 
                 _userService.Update(dto);
-                _logger.LogDebug($"Zakończono aktualizację użytkownika o id {id}");
+                _logger.LogDebug($"Completed updating user with id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas aktualizacji użytkownika: {ex.Message}");
+                _logger.LogError(ex, "Error while updating user with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
@@ -177,19 +195,19 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult UpdateProfile(int id, [FromBody] UpdateUserProfileDto dto)
         {
-            _logger.LogDebug($"Rozpoczęto aktualizację profilu użytkownika o id {id}");
+            _logger.LogDebug($"Started updating user profile with id {id}");
             try
             {
                 if (id != dto.UserId)
                     throw new Exception("Id param is not valid");
 
                 _userService.UpdateProfile(dto);
-                _logger.LogDebug($"Zakończono aktualizację profilu użytkownika o id {id}");
+                _logger.LogDebug($"Completed updating user profile with id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas aktualizacji profilu użytkownika: {ex.Message}");
+                _logger.LogError(ex, "Error while updating user profile with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
@@ -200,19 +218,19 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult UpdatePhoto(int id, [FromBody] UpdateUserPhotoDto dto)
         {
-            _logger.LogDebug($"Rozpoczęto aktualizację zdjęcia użytkownika o id {id}");
+            _logger.LogDebug($"Started updating user photo with id {id}");
             try
             {
                 if (id != dto.UserId)
                     throw new Exception("Id param is not valid");
 
                 _userService.UpdatePhoto(dto);
-                _logger.LogDebug($"Zakończono aktualizację zdjęcia użytkownika o id {id}");
+                _logger.LogDebug($"Completed updating user photo with id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas aktualizacji zdjęcia użytkownika: {ex.Message}");
+                _logger.LogError(ex, "Error while updating user photo with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
@@ -223,16 +241,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult DeletePhoto(int id)
         {
-            _logger.LogDebug($"Rozpoczęto usuwanie zdjęcia użytkownika o id {id}");
+            _logger.LogDebug($"Started deleting user photo with id {id}");
             try
             {
                 _userService.DeletePhoto(id);
-                _logger.LogDebug($"Zakończono usuwanie zdjęcia użytkownika o id {id}");
+                _logger.LogDebug($"Completed deleting user photo with id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas usuwania zdjęcia użytkownika: {ex.Message}");
+                _logger.LogError(ex, "Error while deleting user photo with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
@@ -244,18 +262,19 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Delete(int id)
         {
-            _logger.LogDebug($"Rozpoczęto usuwanie użytkownika o id {id}");
+            _logger.LogDebug($"Started deleting user with id {id}");
             try
             {
                 _userService.Delete(id);
-                _logger.LogDebug($"Zakończono usuwanie użytkownika o id {id}");
+                _logger.LogDebug($"Completed deleting user with id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas usuwania użytkownika: {ex.Message}");
+                _logger.LogError(ex, "Error while deleting user with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
     }
 }
+

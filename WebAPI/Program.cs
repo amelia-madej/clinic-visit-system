@@ -17,7 +17,7 @@ using WebAPI.Middleware;
 
 // Early init of NLog to allow startup and exception logging, before host is built
 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
-logger.Debug("init main");
+logger.Debug("WebAPI startup initialized.");
 
 try
 {
@@ -93,8 +93,7 @@ try
 
     builder.Services.AddScoped<DataSeeder>();
 
-    // rejestruje w kontenerze zale�no�ci polityk� CORS o nazwie SaleKioks,
-    // kt�ra zapewnia dost�p do API z dowolnego miejsca oraz przy pomocy dowolnej metody
+    // Registers the CORS policy used by the client applications.
     builder.Services.AddCors(o => o.AddPolicy("ClinicVisit", builder =>
     {
         builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();

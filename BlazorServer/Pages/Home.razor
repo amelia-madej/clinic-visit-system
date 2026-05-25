@@ -3,6 +3,7 @@
 @inject IVisitService VisitService
 @inject AppStateService AppState
 @inject NavigationManager Nav
+@inject ILogger<Home> Logger
 
 <PageTitle>Doctor Dashboard</PageTitle>
 
@@ -158,10 +159,12 @@ else
     {
         if (AppState.CurrentDoctor is null)
         {
+            Logger.LogWarning("Home page access denied. No current doctor in app state.");
             Nav.NavigateTo("/");
             return;
         }
 
+        Logger.LogInformation("Home page opened for doctor id {DoctorId}.", AppState.CurrentDoctor.DoctorId);
         LoadDashboard();
     }
 
@@ -169,10 +172,19 @@ else
     {
         var today = DateTime.Today;
         var doctorId = AppState.CurrentDoctor!.DoctorId;
+        Logger.LogDebug("Started loading doctor dashboard for doctor id {DoctorId}.", doctorId);
 
-        _visits = VisitService.GetByDoctorId(doctorId)
-            .OrderBy(v => v.VisitDateTime)
-            .ToList();
+        try
+        {
+            _visits = VisitService.GetByDoctorId(doctorId)
+                .OrderBy(v => v.VisitDateTime)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load doctor dashboard for doctor id {DoctorId}.", doctorId);
+            throw;
+        }
 
         _todayVisits = _visits.Count(v => v.VisitDateTime.Date == today);
         _upcomingVisits = _visits.Count(v => v.VisitDateTime >= DateTime.Now && v.Status == nameof(VisitStatus.Scheduled));
@@ -203,6 +215,7 @@ else
 
         ConfigureCharts();
         _loading = false;
+        Logger.LogInformation("Completed loading doctor dashboard for doctor id {DoctorId}. Visits: {VisitCount}", doctorId, _visits.Count);
     }
 
     private void ConfigureCharts()

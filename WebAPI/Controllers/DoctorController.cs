@@ -20,9 +20,9 @@ namespace WebAPI.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<DoctorListItemDto>> GetAll()
         {
-            _logger.LogDebug("Rozpoczęto pobieranie listy wszystkich lekarzy");
+            _logger.LogDebug("Started retrieving the list of all doctors");
             var doctors = _doctorService.GetAll();
-            _logger.LogDebug("Zakończono pobieranie listy wszystkich lekarzy");
+            _logger.LogDebug("Completed retrieving the list of all doctors");
             return Ok(doctors);
         }
 
@@ -33,7 +33,7 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<DoctorDetailsDto> GetById(int id)
         {
-            _logger.LogDebug($"Rozpoczęto pobieranie lekarza o id {id}");
+            _logger.LogDebug($"Started retrieving doctor with id {id}");
             var doctor = _doctorService.GetById(id);
 
             if (doctor == null)
@@ -42,7 +42,7 @@ namespace WebAPI.Controllers
                 return NotFound("Doctor not found");
             }
 
-            _logger.LogDebug($"Zakończono pobieranie lekarza o id {id}");
+            _logger.LogDebug($"Completed retrieving doctor with id {id}");
             return Ok(doctor);
         }
 
@@ -53,11 +53,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<IEnumerable<DoctorListItemDto>> GetByLastName(string lastName)
         {
+            _logger.LogDebug("Started retrieving doctors by last name: {LastName}", lastName);
             var doctors = _doctorService.GetDoctorsByLastName(lastName);
 
             if (doctors == null || !doctors.Any())
+            {
+                _logger.LogWarning("No doctors found by last name: {LastName}", lastName);
                 return NotFound("Doctor not found");
+            }
 
+            _logger.LogDebug("Completed retrieving doctors by last name: {LastName}", lastName);
             return Ok(doctors);
         }
 
@@ -68,11 +73,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<IEnumerable<DoctorListItemDto>> GetBySpecialization(string specialization)
         {
+            _logger.LogDebug("Started retrieving doctors by specialization: {Specialization}", specialization);
             var doctors = _doctorService.GetDoctorsBySpecialization(specialization);
 
             if (doctors == null || !doctors.Any())
+            {
+                _logger.LogWarning("No doctors found by specialization: {Specialization}", specialization);
                 return NotFound("Doctor not found");
+            }
 
+            _logger.LogDebug("Completed retrieving doctors by specialization: {Specialization}", specialization);
             return Ok(doctors);
         }
 
@@ -82,16 +92,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Create([FromBody] DoctorCreateDto dto)
         {
-            _logger.LogDebug("Rozpoczęto tworzenie nowego lekarza");
+            _logger.LogDebug("Started creating a new doctor");
             try
             {
                 var id = _doctorService.Create(dto);
-                _logger.LogDebug($"Zakończono tworzenie lekarza o id {id}");
+                _logger.LogDebug($"Completed creating doctor with id {id}");
                 return CreatedAtAction(nameof(GetById), new { id }, id);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas tworzenia lekarza: {ex.Message}");
+                _logger.LogError(ex, "Error while creating doctor");
                 return BadRequest(ex.Message);
             }
         }
@@ -103,7 +113,7 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Update(int id, [FromBody] DoctorUpdateDto dto)
         {
-            _logger.LogDebug($"Rozpoczęto aktualizację lekarza o id {id}");
+            _logger.LogDebug($"Started updating doctor with id {id}");
             try
             {
                 if (id != dto.DoctorId)
@@ -113,12 +123,12 @@ namespace WebAPI.Controllers
                 }
 
                 _doctorService.Update(dto);
-                _logger.LogDebug($"Zakończono aktualizację lekarza o id {id}");
+                _logger.LogDebug($"Completed updating doctor with id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas aktualizacji lekarza: {ex.Message}");
+                _logger.LogError(ex, "Error while updating doctor with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
@@ -129,18 +139,19 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult Delete(int id)
         {
-            _logger.LogDebug($"Rozpoczęto usuwanie lekarza o id {id}");
+            _logger.LogDebug($"Started deleting doctor with id {id}");
             try
             {
                 _doctorService.Delete(id);
-                _logger.LogDebug($"Zakończono usuwanie lekarza o id {id}");
+                _logger.LogDebug($"Completed deleting doctor with id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas usuwania lekarza: {ex.Message}");
+                _logger.LogError(ex, "Error while deleting doctor with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
     }
 }
+

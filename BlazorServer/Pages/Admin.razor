@@ -3,6 +3,7 @@
 @inject IAnomalyDetectionService AnomalyDetectionService
 @inject AppStateService AppState
 @inject NavigationManager Nav
+@inject ILogger<Admin> Logger
 
 <PageTitle>Admin Panel</PageTitle>
 
@@ -125,33 +126,50 @@ else
     {
         if (AppState.CurrentUser?.Role != UserRole.Admin)
         {
+            Logger.LogWarning("Admin page access denied. Current role: {Role}", AppState.CurrentUser?.Role);
             Nav.NavigateTo("/");
             return;
         }
+        Logger.LogInformation("Admin page opened by user id {UserId}.", AppState.CurrentUser.UserId);
         LoadDashboard();
     }
 
     private void ApplyQuickRange(int days)
     {
+        Logger.LogInformation("Admin anomaly quick range selected: {Days} days.", days);
         _periodEnd = DateTime.Today;
         _periodStart = DateTime.Today.AddDays(-days);
         LoadDashboard();
     }
 
-    private void ApplyRange() => LoadDashboard();
+    private void ApplyRange()
+    {
+        Logger.LogInformation("Admin anomaly custom range applied.");
+        LoadDashboard();
+    }
 
     private void LoadDashboard()
     {
         var start = (_periodStart ?? DateTime.Today.AddDays(-90)).Date;
         var end = (_periodEnd ?? DateTime.Today).Date;
+        Logger.LogDebug("Started loading anomaly dashboard from {StartDate} to {EndDate}.", start, end);
         if (end < start)
         {
+            Logger.LogWarning("Anomaly dashboard date range was reversed. Swapping {StartDate} and {EndDate}.", start, end);
             (start, end) = (end, start);
             _periodStart = start;
             _periodEnd = end;
         }
 
-        _dashboard = AnomalyDetectionService.DetectAnomalies(start, end);
+        try
+        {
+            _dashboard = AnomalyDetectionService.DetectAnomalies(start, end);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load anomaly dashboard from {StartDate} to {EndDate}.", start, end);
+            throw;
+        }
         _rangeLabel = $"{start:yyyy-MM-dd} - {end:yyyy-MM-dd}";
 
         _categoryPoints = _dashboard.AlertsByCategory
@@ -194,6 +212,7 @@ else
         };
 
         _loading = false;
+        Logger.LogInformation("Completed loading anomaly dashboard. Alerts: {AlertCount}", _dashboard.TotalAlerts);
     }
 
     private MudBlazor.Color SeverityColor(string severity) => severity switch

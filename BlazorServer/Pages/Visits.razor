@@ -5,6 +5,7 @@
 @inject ISnackbar Snackbar
 @inject AppStateService AppState
 @inject NavigationManager Nav
+@inject ILogger<Visits> Logger
 @implements IDisposable
 
 <PageTitle>Visits</PageTitle>
@@ -124,9 +125,25 @@
 
     protected override void OnInitialized()
     {
-        if (AppState.CurrentDoctor is null) { Nav.NavigateTo("/"); return; }
-        _patients = PatientService.GetAll();
-        _doctors  = DoctorService.GetAll();
+        if (AppState.CurrentDoctor is null)
+        {
+            Logger.LogWarning("Visits page access denied. No current doctor in app state.");
+            Nav.NavigateTo("/");
+            return;
+        }
+        Logger.LogInformation("Visits page opened for doctor id {DoctorId}.", AppState.CurrentDoctor.DoctorId);
+        try
+        {
+            Logger.LogDebug("Started loading visit form lookup data.");
+            _patients = PatientService.GetAll();
+            _doctors  = DoctorService.GetAll();
+            Logger.LogDebug("Completed loading visit form lookup data. Patients: {PatientCount}, Doctors: {DoctorCount}", _patients.Count, _doctors.Count);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load visit form lookup data.");
+            throw;
+        }
         LoadVisits();
         AppState.OnChange += OnAppStateChanged;
     }
@@ -134,14 +151,25 @@
     private void LoadVisits()
     {
         _loading = true;
-        _visits  = AppState.CurrentDoctor is null
-            ? VisitService.GetAll()
-            : VisitService.GetByDoctorId(AppState.CurrentDoctor.DoctorId);
+        Logger.LogDebug("Started loading visits page data.");
+        try
+        {
+            _visits  = AppState.CurrentDoctor is null
+                ? VisitService.GetAll()
+                : VisitService.GetByDoctorId(AppState.CurrentDoctor.DoctorId);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load visits page data.");
+            throw;
+        }
         _loading = false;
+        Logger.LogInformation("Completed loading visits page data. Visits: {VisitCount}", _visits.Count);
     }
 
     private void OnAppStateChanged()
     {
+        Logger.LogDebug("App state changed on visits page. Reloading data.");
         LoadVisits();
         InvokeAsync(StateHasChanged);
     }
@@ -153,23 +181,38 @@
 
     private void OpenCreateDialog()
     {
+        Logger.LogInformation("Opening create visit dialog.");
         _form     = new VisitCreateDto();
         _formDate = DateTime.Today;
         _formTime = new TimeSpan(8, 0, 0);
         _createDialogOpen = true;
     }
 
-    private void CloseCreateDialog() => _createDialogOpen = false;
+    private void CloseCreateDialog()
+    {
+        Logger.LogInformation("Closing create visit dialog.");
+        _createDialogOpen = false;
+    }
 
     private void CreateVisit()
     {
         _form.VisitDateTime = (_formDate ?? DateTime.Today) + (_formTime ?? TimeSpan.Zero);
 
-        VisitService.Create(_form);
-        LoadVisits();
+        try
+        {
+            Logger.LogInformation("Started creating visit from BlazorServer UI.");
+            VisitService.Create(_form);
+            LoadVisits();
 
-        _createDialogOpen = false;
-        Snackbar.Add("Visit created successfully.", Severity.Success);
+            _createDialogOpen = false;
+            Logger.LogInformation("Visit created successfully from BlazorServer UI.");
+            Snackbar.Add("Visit created successfully.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to create visit from BlazorServer UI.");
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
     }
 
     private Color StatusColor(string status) => status switch

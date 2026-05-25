@@ -1,4 +1,4 @@
-using Application.Services;
+﻿using Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.DTOs;
 using System;
@@ -28,9 +28,9 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<PrescriptionListItemDto>> GetAll()
         {
-            _logger.LogDebug("Rozpoczęto pobieranie listy wszystkich recept");
+            _logger.LogDebug("Started retrieving the list of all prescriptions");
             var prescriptions = _prescriptionService.GetAll();
-            _logger.LogDebug("Zakończono pobieranie listy wszystkich recept");
+            _logger.LogDebug("Completed retrieving the list of all prescriptions");
             return Ok(prescriptions);
         }
 
@@ -41,7 +41,7 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<PrescriptionDetailsDto> GetById(int id)
         {
-            _logger.LogDebug($"Rozpoczęto pobieranie recepty o id {id}");
+            _logger.LogDebug("Started retrieving prescription with id {Id}", id);
             try
             {
                 var prescription = _prescriptionService.GetById(id);
@@ -51,11 +51,12 @@ namespace WebAPI.Controllers
                     return NotFound("Prescription not found");
                 }
 
-                _logger.LogDebug($"Zakończono pobieranie recepty o id {id}");
+                _logger.LogDebug("Completed retrieving prescription with id {Id}", id);
                 return Ok(prescription);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving prescription with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
@@ -66,13 +67,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<IEnumerable<PrescriptionListItemDto>> GetByMedicalRecordId(int medicalRecordId)
         {
+            _logger.LogDebug("Started retrieving prescriptions by medical record id {MedicalRecordId}", medicalRecordId);
             try
             {
                 var prescriptions = _prescriptionService.GetByMedicalRecordId(medicalRecordId);
+                _logger.LogDebug("Completed retrieving prescriptions by medical record id {MedicalRecordId}", medicalRecordId);
                 return Ok(prescriptions);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving prescriptions by medical record id {MedicalRecordId}", medicalRecordId);
                 return BadRequest(ex.Message);
             }
         }
@@ -82,7 +86,9 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<PrescriptionListItemDto>> GetExpired()
         {
+            _logger.LogDebug("Started retrieving expired prescriptions");
             var prescriptions = _prescriptionService.GetExpired();
+            _logger.LogDebug("Completed retrieving expired prescriptions");
             return Ok(prescriptions);
         }
 
@@ -92,13 +98,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<IEnumerable<PrescriptionListItemDto>> GetExpiringSoon([FromQuery] int days = 7)
         {
+            _logger.LogDebug("Started retrieving prescriptions expiring within {Days} days", days);
             try
             {
                 var prescriptions = _prescriptionService.GetExpiringSoon(days);
+                _logger.LogDebug("Completed retrieving prescriptions expiring within {Days} days", days);
                 return Ok(prescriptions);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving prescriptions expiring within {Days} days", days);
                 return BadRequest(ex.Message);
             }
         }
@@ -109,16 +118,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Create([FromQuery] int medicalRecordId, [FromBody] PrescriptionCreateDto dto)
         {
-            _logger.LogDebug($"Rozpoczęto tworzenie nowej recepty dla rekordu medycznego {medicalRecordId}");
+            _logger.LogDebug("Started creating a new prescription for medical record {MedicalRecordId}", medicalRecordId);
             try
             {
                 var id = _prescriptionService.Create(dto, medicalRecordId);
-                _logger.LogDebug($"Zakończono tworzenie recepty o id {id}");
+                _logger.LogDebug("Completed creating prescription with id {Id}", id);
                 return CreatedAtAction(nameof(GetById), new { id }, id);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas tworzenia recepty: {ex.Message}");
+                _logger.LogError(ex, "Error while creating prescription for medical record {MedicalRecordId}", medicalRecordId);
                 return BadRequest(ex.Message);
             }
         }
@@ -130,16 +139,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Update(int id, [FromBody] PrescriptionCreateDto dto)
         {
-            _logger.LogDebug($"Rozpoczęto aktualizację recepty o id {id}");
+            _logger.LogDebug("Started updating prescription with id {Id}", id);
             try
             {
                 _prescriptionService.Update(id, dto);
-                _logger.LogDebug($"Zakończono aktualizację recepty o id {id}");
+                _logger.LogDebug("Completed updating prescription with id {Id}", id);
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas aktualizacji recepty: {ex.Message}");
+                _logger.LogError(ex, "Error while updating prescription with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
@@ -151,16 +160,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Delete(int id)
         {
-            _logger.LogDebug($"Rozpoczęto usuwanie recepty o id {id}");
+            _logger.LogDebug("Started deleting prescription with id {Id}", id);
             try
             {
                 _prescriptionService.Delete(id);
-                _logger.LogDebug($"Zakończono usuwanie recepty o id {id}");
+                _logger.LogDebug("Completed deleting prescription with id {Id}", id);
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas usuwania recepty: {ex.Message}");
+                _logger.LogError(ex, "Error while deleting prescription with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
@@ -171,13 +180,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult AddItem(int prescriptionId, [FromBody] PrescriptionItemCreateDto dto)
         {
+            _logger.LogDebug("Started adding prescription item to prescription id {PrescriptionId}", prescriptionId);
             try
             {
                 var id = _prescriptionItemService.Create(dto, prescriptionId);
+                _logger.LogDebug("Completed adding prescription item with id {Id}", id);
                 return CreatedAtAction("GetItem", new { id }, id);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while adding prescription item to prescription id {PrescriptionId}", prescriptionId);
                 return BadRequest(ex.Message);
             }
         }
@@ -188,13 +200,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<IEnumerable<PrescriptionItemDto>> GetItems(int prescriptionId)
         {
+            _logger.LogDebug("Started retrieving items for prescription id {PrescriptionId}", prescriptionId);
             try
             {
                 var items = _prescriptionItemService.GetByPrescriptionId(prescriptionId);
+                _logger.LogDebug("Completed retrieving items for prescription id {PrescriptionId}", prescriptionId);
                 return Ok(items);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving items for prescription id {PrescriptionId}", prescriptionId);
                 return BadRequest(ex.Message);
             }
         }
@@ -206,16 +221,22 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<PrescriptionItemDto> GetItem(int itemId)
         {
+            _logger.LogDebug("Started retrieving prescription item with id {ItemId}", itemId);
             try
             {
                 var item = _prescriptionItemService.GetById(itemId);
                 if (item == null)
+                {
+                    _logger.LogWarning("Prescription item with id {ItemId} not found", itemId);
                     return NotFound("Prescription item not found");
+                }
 
+                _logger.LogDebug("Completed retrieving prescription item with id {ItemId}", itemId);
                 return Ok(item);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving prescription item with id {ItemId}", itemId);
                 return BadRequest(ex.Message);
             }
         }
@@ -227,13 +248,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult UpdateItem(int itemId, [FromBody] PrescriptionItemCreateDto dto)
         {
+            _logger.LogDebug("Started updating prescription item with id {ItemId}", itemId);
             try
             {
                 _prescriptionItemService.Update(itemId, dto);
+                _logger.LogDebug("Completed updating prescription item with id {ItemId}", itemId);
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while updating prescription item with id {ItemId}", itemId);
                 return BadRequest(ex.Message);
             }
         }
@@ -245,15 +269,19 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult DeleteItem(int itemId)
         {
+            _logger.LogDebug("Started deleting prescription item with id {ItemId}", itemId);
             try
             {
                 _prescriptionItemService.Delete(itemId);
+                _logger.LogDebug("Completed deleting prescription item with id {ItemId}", itemId);
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while deleting prescription item with id {ItemId}", itemId);
                 return BadRequest(ex.Message);
             }
         }
     }
 }
+

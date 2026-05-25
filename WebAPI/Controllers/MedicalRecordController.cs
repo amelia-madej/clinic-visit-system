@@ -1,4 +1,4 @@
-using Application.Services;
+﻿using Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.DTOs;
 
@@ -24,9 +24,9 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<MedicalRecordDto>> GetAll()
         {
-            _logger.LogDebug("Rozpoczęto pobieranie listy wszystkich rekordów medycznych");
+            _logger.LogDebug("Started retrieving the list of all medical records");
             var records = _medicalRecordService.GetAll();
-            _logger.LogDebug("Zakończono pobieranie listy wszystkich rekordów medycznych");
+            _logger.LogDebug("Completed retrieving the list of all medical records");
             return Ok(records);
         }
 
@@ -37,7 +37,7 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<MedicalRecordDto> GetById(int id)
         {
-            _logger.LogDebug($"Rozpoczęto pobieranie rekordu medycznego o id {id}");
+            _logger.LogDebug("Started retrieving medical record with id {Id}", id);
             try
             {
                 var record = _medicalRecordService.GetById(id);
@@ -47,11 +47,12 @@ namespace WebAPI.Controllers
                     return NotFound("Medical record not found");
                 }
 
-                _logger.LogDebug($"Zakończono pobieranie rekordu medycznego o id {id}");
+                _logger.LogDebug("Completed retrieving medical record with id {Id}", id);
                 return Ok(record);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving medical record with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
@@ -63,16 +64,22 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<MedicalRecordDto> GetByVisitId(int visitId)
         {
+            _logger.LogDebug("Started retrieving medical record by visit id {VisitId}", visitId);
             try
             {
                 var record = _medicalRecordService.GetByVisitId(visitId);
                 if (record == null)
+                {
+                    _logger.LogWarning("Medical record for visit id {VisitId} not found", visitId);
                     return NotFound("Medical record not found for this visit");
+                }
 
+                _logger.LogDebug("Completed retrieving medical record by visit id {VisitId}", visitId);
                 return Ok(record);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving medical record by visit id {VisitId}", visitId);
                 return BadRequest(ex.Message);
             }
         }
@@ -84,19 +91,20 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Update([FromBody] MedicalRecordDto dto)
         {
-            _logger.LogDebug($"Rozpoczęto aktualizację rekordu medycznego o id {dto.Id}");
+            _logger.LogDebug("Started updating medical record with id {Id}", dto.Id);
             try
             {
                 _medicalRecordService.Update(dto);
-                _logger.LogDebug($"Zakończono aktualizację rekordu medycznego o id {dto.Id}");
+                _logger.LogDebug("Completed updating medical record with id {Id}", dto.Id);
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas aktualizacji rekordu medycznego: {ex.Message}");
+                _logger.LogError(ex, "Error while updating medical record with id {Id}", dto.Id);
                 return BadRequest(ex.Message);
             }
         }
 
     }
 }
+

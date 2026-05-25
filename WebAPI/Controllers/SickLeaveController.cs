@@ -1,4 +1,4 @@
-using Application.Services;
+﻿using Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.DTOs;
 using System;
@@ -25,9 +25,9 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<SickLeaveListItemDto>> GetAll()
         {
-            _logger.LogDebug("Rozpoczęto pobieranie listy wszystkich zwolnień lekarskich");
+            _logger.LogDebug("Started retrieving the list of all sick leaves");
             var sickLeaves = _sickLeaveService.GetAll();
-            _logger.LogDebug("Zakończono pobieranie listy wszystkich zwolnień lekarskich");
+            _logger.LogDebug("Completed retrieving the list of all sick leaves");
             return Ok(sickLeaves);
         }
 
@@ -38,7 +38,7 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<SickLeaveDetailsDto> GetById(int id)
         {
-            _logger.LogDebug($"Rozpoczęto pobieranie zwolnienia lekarskiego o id {id}");
+            _logger.LogDebug("Started retrieving sick leave with id {Id}", id);
             try
             {
                 var sickLeave = _sickLeaveService.GetById(id);
@@ -48,11 +48,12 @@ namespace WebAPI.Controllers
                     return NotFound("Sick leave not found");
                 }
 
-                _logger.LogDebug($"Zakończono pobieranie zwolnienia lekarskiego o id {id}");
+                _logger.LogDebug("Completed retrieving sick leave with id {Id}", id);
                 return Ok(sickLeave);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving sick leave with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
@@ -64,16 +65,22 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<SickLeaveDetailsDto> GetByMedicalRecordId(int medicalRecordId)
         {
+            _logger.LogDebug("Started retrieving sick leave by medical record id {MedicalRecordId}", medicalRecordId);
             try
             {
                 var sickLeave = _sickLeaveService.GetByMedicalRecordId(medicalRecordId);
                 if (sickLeave == null)
+                {
+                    _logger.LogWarning("Sick leave for medical record id {MedicalRecordId} not found", medicalRecordId);
                     return NotFound("Sick leave not found for this medical record");
+                }
 
+                _logger.LogDebug("Completed retrieving sick leave by medical record id {MedicalRecordId}", medicalRecordId);
                 return Ok(sickLeave);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving sick leave by medical record id {MedicalRecordId}", medicalRecordId);
                 return BadRequest(ex.Message);
             }
         }
@@ -84,13 +91,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<IEnumerable<SickLeaveListItemDto>> GetByDateRange([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
         {
+            _logger.LogDebug("Started retrieving sick leaves between {StartDate} and {EndDate}", startDate, endDate);
             try
             {
                 var sickLeaves = _sickLeaveService.GetByDateRange(startDate, endDate);
+                _logger.LogDebug("Completed retrieving sick leaves between {StartDate} and {EndDate}", startDate, endDate);
                 return Ok(sickLeaves);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving sick leaves between {StartDate} and {EndDate}", startDate, endDate);
                 return BadRequest(ex.Message);
             }
         }
@@ -101,16 +111,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Create([FromBody] SickLeaveCreateDto dto)
         {
-            _logger.LogDebug("Rozpoczęto tworzenie nowego zwolnienia lekarskiego");
+            _logger.LogDebug("Started creating a new sick leave");
             try
             {
                 var id = _sickLeaveService.Create(dto);
-                _logger.LogDebug($"Zakończono tworzenie zwolnienia lekarskiego o id {id}");
+                _logger.LogDebug("Completed creating sick leave with id {Id}", id);
                 return CreatedAtAction(nameof(GetById), new { id }, id);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas tworzenia zwolnienia lekarskiego: {ex.Message}");
+                _logger.LogError(ex, "Error while creating sick leave");
                 return BadRequest(ex.Message);
             }
         }
@@ -122,16 +132,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Update([FromBody] SickLeaveUpdateDto dto)
         {
-            _logger.LogDebug($"Rozpoczęto aktualizację zwolnienia lekarskiego o id {dto.SickLeaveId}");
+            _logger.LogDebug("Started updating sick leave with id {Id}", dto.SickLeaveId);
             try
             {
                 _sickLeaveService.Update(dto);
-                _logger.LogDebug($"Zakończono aktualizację zwolnienia lekarskiego o id {dto.SickLeaveId}");
+                _logger.LogDebug("Completed updating sick leave with id {Id}", dto.SickLeaveId);
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas aktualizacji zwolnienia lekarskiego: {ex.Message}");
+                _logger.LogError(ex, "Error while updating sick leave with id {Id}", dto.SickLeaveId);
                 return BadRequest(ex.Message);
             }
         }
@@ -143,18 +153,19 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Delete(int id)
         {
-            _logger.LogDebug($"Rozpoczęto usuwanie zwolnienia lekarskiego o id {id}");
+            _logger.LogDebug("Started deleting sick leave with id {Id}", id);
             try
             {
                 _sickLeaveService.Delete(id);
-                _logger.LogDebug($"Zakończono usuwanie zwolnienia lekarskiego o id {id}");
+                _logger.LogDebug("Completed deleting sick leave with id {Id}", id);
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas usuwania zwolnienia lekarskiego: {ex.Message}");
+                _logger.LogError(ex, "Error while deleting sick leave with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
     }
 }
+

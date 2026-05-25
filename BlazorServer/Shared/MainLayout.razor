@@ -2,6 +2,7 @@
 @inject IDoctorService DoctorService
 @inject AppStateService AppState
 @inject NavigationManager Nav
+@inject ILogger<MainLayout> Logger
 @implements IDisposable
 
 <MudThemeProvider Theme="_theme" />
@@ -17,9 +18,9 @@
                        OnClick="ToggleDrawer" />
         <MudText Typo="Typo.h6" Class="ml-3">Doctor Portal</MudText>
         <MudSpacer />
-        @if (AppState.CurrentUser is not null)
+        @if (AppState.CurrentUser is { } currentUser)
         {
-            @if (string.IsNullOrWhiteSpace(AppState.CurrentUser?.PhotoDataUrl))
+            @if (string.IsNullOrWhiteSpace(currentUser.PhotoDataUrl))
             {
                 <MudAvatar Size="Size.Small" Color="Color.Inherit" Class="mr-2">
                     <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
@@ -28,12 +29,12 @@
             else
             {
                 <MudAvatar Size="Size.Small" Class="mr-2">
-                    <MudImage Src="@AppState.CurrentUser.PhotoDataUrl" Alt="Profile photo" ObjectFit="ObjectFit.Cover" />
+                    <MudImage Src="@currentUser.PhotoDataUrl" Alt="Profile photo" ObjectFit="ObjectFit.Cover" />
                 </MudAvatar>
             }
 
             <MudText Typo="Typo.body1" Class="mr-2">
-                @(AppState.CurrentUser.Role == UserRole.Doctor ? "Dr. " : "")@AppState.CurrentUser.FirstName @AppState.CurrentUser.LastName
+                @(currentUser.Role == UserRole.Doctor ? "Dr. " : "")@currentUser.FirstName @currentUser.LastName
             </MudText>
             <MudIconButton Icon="@Icons.Material.Filled.Logout"
                            Color="Color.Inherit"
@@ -84,7 +85,10 @@
         var isLoginPage = string.IsNullOrWhiteSpace(relativePath);
 
         if (!isLoginPage && AppState.CurrentUser is null)
+        {
+            Logger.LogInformation("Blocked navigation to '{Path}' for logged-out user.", relativePath);
             Nav.NavigateTo("/", replace: true);
+        }
     }
 
     private void ToggleDrawer()
@@ -97,6 +101,7 @@
 
     private void Switch()
     {
+        Logger.LogInformation("User requested logout.");
         AppState.Logout();
         Nav.NavigateTo("/");
     }

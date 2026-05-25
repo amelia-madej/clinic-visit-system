@@ -21,9 +21,9 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<PatientListItemDto>> GetAll()
         {
-            _logger.LogDebug("Rozpoczęto pobieranie listy wszystkich pacjentów");
+            _logger.LogDebug("Started retrieving the list of all patients");
             var patients = _patientService.GetAll();
-            _logger.LogDebug("Zakończono pobieranie listy wszystkich pacjentów");
+            _logger.LogDebug("Completed retrieving the list of all patients");
             return Ok(patients);
         }
 
@@ -34,7 +34,7 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<PatientDetailsDto> GetById(int id)
         {
-            _logger.LogDebug($"Rozpoczęto pobieranie pacjenta o id {id}");
+            _logger.LogDebug($"Started retrieving patient with id {id}");
             var patient = _patientService.GetById(id);
 
             if (patient == null)
@@ -43,7 +43,7 @@ namespace WebAPI.Controllers
                 return NotFound("Patient not found");
             }
 
-            _logger.LogDebug($"Zakończono pobieranie pacjenta o id {id}");
+            _logger.LogDebug($"Completed retrieving patient with id {id}");
             return Ok(patient);
         }
 
@@ -53,11 +53,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<PatientDetailsDto> GetByEmail(string email)
         {
+            _logger.LogDebug("Started retrieving patient by email: {Email}", email);
             var patient = _patientService.GetByEmail(email);
 
             if (patient == null)
+            {
+                _logger.LogWarning("Patient by email {Email} not found", email);
                 return NotFound("Patient not found");
+            }
 
+            _logger.LogDebug("Completed retrieving patient by email: {Email}", email);
             return Ok(patient);
         }
 
@@ -67,11 +72,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<PatientDetailsDto> GetByPesel(string pesel)
         {
+            _logger.LogDebug("Started retrieving patient by PESEL.");
             var patient = _patientService.GetByPesel(pesel);
 
             if (patient == null)
+            {
+                _logger.LogWarning("Patient by PESEL not found.");
                 return NotFound("Patient not found");
+            }
 
+            _logger.LogDebug("Completed retrieving patient by PESEL.");
             return Ok(patient);
         }
 
@@ -81,11 +91,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<PatientDetailsDto> GetByPhoneNumber(string phoneNumber)
         {
+            _logger.LogDebug("Started retrieving patient by phone number.");
             var patient = _patientService.GetByPhoneNumber(phoneNumber);
 
             if (patient == null)
+            {
+                _logger.LogWarning("Patient by phone number not found.");
                 return NotFound("Patient not found");
+            }
 
+            _logger.LogDebug("Completed retrieving patient by phone number.");
             return Ok(patient);
         }
 
@@ -95,16 +110,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Create([FromBody] PatientCreateDto dto)
         {
-            _logger.LogDebug("Rozpoczęto tworzenie nowego pacjenta");
+            _logger.LogDebug("Started creating a new patient");
             try
             {
                 var id = _patientService.Create(dto);
-                _logger.LogDebug($"Zakończono tworzenie pacjenta o id {id}");
+                _logger.LogDebug($"Completed creating patient with id {id}");
                 return CreatedAtAction(nameof(GetById), new { id }, id);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas tworzenia pacjenta: {ex.Message}");
+                _logger.LogError(ex, "Error while creating patient");
                 return BadRequest(ex.Message);
             }
         }
@@ -116,7 +131,7 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Update(int id, [FromBody] PatientUpdateDto dto)
         {
-            _logger.LogDebug($"Rozpoczęto aktualizację pacjenta o id {id}");
+            _logger.LogDebug($"Started updating patient with id {id}");
             try
             {
                 if (id != dto.PatientId)
@@ -126,12 +141,12 @@ namespace WebAPI.Controllers
                 }
 
                 _patientService.Update(dto);
-                _logger.LogDebug($"Zakończono aktualizację pacjenta o id {id}");
+                _logger.LogDebug($"Completed updating patient with id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas aktualizacji pacjenta: {ex.Message}");
+                _logger.LogError(ex, "Error while updating patient with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
@@ -142,18 +157,19 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult Delete(int id)
         {
-            _logger.LogDebug($"Rozpoczęto usuwanie pacjenta o id {id}");
+            _logger.LogDebug($"Started deleting patient with id {id}");
             try
             {
                 _patientService.Delete(id);
-                _logger.LogDebug($"Zakończono usuwanie pacjenta o id {id}");
+                _logger.LogDebug($"Completed deleting patient with id {id}");
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas usuwania pacjenta: {ex.Message}");
+                _logger.LogError(ex, "Error while deleting patient with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
     }
 }
+

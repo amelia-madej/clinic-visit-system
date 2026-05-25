@@ -1,4 +1,4 @@
-using Application.Services;
+﻿using Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.DTOs;
 using System;
@@ -25,9 +25,9 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<VisitListItemDto>> GetAll()
         {
-            _logger.LogDebug("Rozpoczęto pobieranie listy wszystkich wizyt");
+            _logger.LogDebug("Started retrieving the list of all visits");
             var visits = _visitService.GetAll();
-            _logger.LogDebug("Zakończono pobieranie listy wszystkich wizyt");
+            _logger.LogDebug("Completed retrieving the list of all visits");
             return Ok(visits);
         }
 
@@ -38,7 +38,7 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<VisitDetailsDto> GetById(int id)
         {
-            _logger.LogDebug($"Rozpoczęto pobieranie wizyty o id {id}");
+            _logger.LogDebug("Started retrieving visit with id {Id}", id);
             var visit = _visitService.GetById(id);
             if (visit == null)
             {
@@ -46,7 +46,7 @@ namespace WebAPI.Controllers
                 return NotFound("Visit not found");
             }
 
-            _logger.LogDebug($"Zakończono pobieranie wizyty o id {id}");
+            _logger.LogDebug("Completed retrieving visit with id {Id}", id);
             return Ok(visit);
         }
 
@@ -56,13 +56,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<IEnumerable<VisitListItemDto>> GetByPatientId(int patientId)
         {
+            _logger.LogDebug("Started retrieving visits by patient id {PatientId}", patientId);
             try
             {
                 var visits = _visitService.GetByPatientId(patientId);
+                _logger.LogDebug("Completed retrieving visits by patient id {PatientId}", patientId);
                 return Ok(visits);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving visits by patient id {PatientId}", patientId);
                 return BadRequest(ex.Message);
             }
         }
@@ -73,13 +76,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<IEnumerable<VisitListItemDto>> GetByDoctorId(int doctorId)
         {
+            _logger.LogDebug("Started retrieving visits by doctor id {DoctorId}", doctorId);
             try
             {
                 var visits = _visitService.GetByDoctorId(doctorId);
+                _logger.LogDebug("Completed retrieving visits by doctor id {DoctorId}", doctorId);
                 return Ok(visits);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving visits by doctor id {DoctorId}", doctorId);
                 return BadRequest(ex.Message);
             }
         }
@@ -90,13 +96,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<IEnumerable<VisitListItemDto>> GetByDateRange([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
         {
+            _logger.LogDebug("Started retrieving visits between {StartDate} and {EndDate}", startDate, endDate);
             try
             {
                 var visits = _visitService.GetByDateRange(startDate, endDate);
+                _logger.LogDebug("Completed retrieving visits between {StartDate} and {EndDate}", startDate, endDate);
                 return Ok(visits);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while retrieving visits between {StartDate} and {EndDate}", startDate, endDate);
                 return BadRequest(ex.Message);
             }
         }
@@ -107,16 +116,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Create([FromBody] VisitCreateDto dto)
         {
-            _logger.LogDebug("Rozpoczęto tworzenie nowej wizyty");
+            _logger.LogDebug("Started creating a new visit");
             try
             {
                 var id = _visitService.Create(dto);
-                _logger.LogDebug($"Zakończono tworzenie wizyty o id {id}");
+                _logger.LogDebug("Completed creating visit with id {Id}", id);
                 return CreatedAtAction(nameof(GetById), new { id }, id);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas tworzenia wizyty: {ex.Message}");
+                _logger.LogError(ex, "Error while creating visit");
                 return BadRequest(ex.Message);
             }
         }
@@ -128,16 +137,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Update([FromBody] VisitUpdateDto dto)
         {
-            _logger.LogDebug($"Rozpoczęto aktualizację wizyty o id {dto.VisitId}");
+            _logger.LogDebug("Started updating visit with id {Id}", dto.VisitId);
             try
             {
                 _visitService.Update(dto);
-                _logger.LogDebug($"Zakończono aktualizację wizyty o id {dto.VisitId}");
+                _logger.LogDebug("Completed updating visit with id {Id}", dto.VisitId);
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Błąd podczas aktualizacji wizyty: {ex.Message}");
+                _logger.LogError(ex, "Error while updating visit with id {Id}", dto.VisitId);
                 return BadRequest(ex.Message);
             }
         }
@@ -149,13 +158,16 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult CompleteVisit(int id, [FromBody] VisitCompleteDto dto)
         {
+            _logger.LogDebug("Started completing visit with id {Id}", id);
             try
             {
                 _visitService.CompleteVisit(id, dto);
+                _logger.LogDebug("Completed visit with id {Id}", id);
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while completing visit with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
@@ -167,15 +179,19 @@ namespace WebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Delete(int id)
         {
+            _logger.LogDebug("Started deleting visit with id {Id}", id);
             try
             {
                 _visitService.Delete(id);
+                _logger.LogDebug("Completed deleting visit with id {Id}", id);
                 return NoContent();
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error while deleting visit with id {Id}", id);
                 return BadRequest(ex.Message);
             }
         }
     }
 }
+
