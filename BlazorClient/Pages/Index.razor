@@ -197,7 +197,7 @@
             return;
         }
 
-        AppState.SetUser(result);
+        await AppState.SetUserAsync(result);
         NotificationService.Notify(NotificationSeverity.Success, "Welcome", $"Hello, {result.FirstName}.", 3000);
         Nav.NavigateTo("/patient/home");
     }

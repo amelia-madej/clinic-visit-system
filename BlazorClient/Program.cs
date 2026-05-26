@@ -27,4 +27,6 @@ builder.Services.AddScoped(sp => new HttpClient
 builder.Services.AddApexCharts();
 builder.Services.AddBlazoredLocalStorage();
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+await host.Services.GetRequiredService<AppStateService>().InitializeAsync();
+await host.RunAsync();

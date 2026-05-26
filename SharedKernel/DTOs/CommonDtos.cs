@@ -47,6 +47,8 @@ namespace SharedKernel.DTOs
         public string PhoneNumber { get; set; } = null!;
         public string? PhotoDataUrl { get; set; }
         public UserRole Role { get; set; }
+        public string? Token { get; set; }
+        public DateTime? TokenExpiresAtUtc { get; set; }
     }
 }
 

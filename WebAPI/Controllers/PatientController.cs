@@ -1,4 +1,5 @@
 ﻿using Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.DTOs;
 
@@ -106,6 +107,7 @@ namespace WebAPI.Controllers
 
         // POST api/patient
         [HttpPost]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Create([FromBody] PatientCreateDto dto)

@@ -1,21 +1,27 @@
-﻿using Application.Services;
+using Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.DTOs;
+using WebAPI.Services;
 
 namespace WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [AllowAnonymous]
     public class AuthController : Controller
     {
         private readonly IAuthService _authService;
+        private readonly IJwtTokenService _jwtTokenService;
         private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService, ILogger<AuthController> logger)
+        public AuthController(IAuthService authService, IJwtTokenService jwtTokenService, ILogger<AuthController> logger)
         {
             _authService = authService;
+            _jwtTokenService = jwtTokenService;
             _logger = logger;
         }
+
         [HttpPost("login")]
         public IActionResult Login(LoginDto dto)
         {
@@ -24,6 +30,7 @@ namespace WebAPI.Controllers
             try
             {
                 var result = _authService.Login(dto);
+                _jwtTokenService.AddToken(result);
                 _logger.LogInformation("Login successful for user id: {UserId}", result.UserId);
 
                 return Ok(result);
@@ -39,4 +46,3 @@ namespace WebAPI.Controllers
         }
     }
 }
-

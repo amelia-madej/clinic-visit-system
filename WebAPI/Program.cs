@@ -10,10 +10,13 @@ using Infrastructure;
 using Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using NLog;
 using NLog.Web;
 using SharedKernel.DTOs;
 using WebAPI.Middleware;
+using WebAPI.Services;
 
 // Early init of NLog to allow startup and exception logging, before host is built
 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
@@ -29,7 +32,10 @@ try
 
     // Add services to the container.
 
-    builder.Services.AddControllers();
+    builder.Services.AddControllers(options =>
+    {
+        options.Filters.Add(new AuthorizeFilter());
+    });
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
@@ -90,6 +96,12 @@ try
     builder.Services.AddScoped<ISickLeaveService, SickLeaveService>();
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<IAnomalyDetectionService, AnomalyDetectionService>();
+    builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+    builder.Services
+        .AddAuthentication(JwtAuthenticationHandler.SchemeName)
+        .AddScheme<AuthenticationSchemeOptions, JwtAuthenticationHandler>(JwtAuthenticationHandler.SchemeName, null);
+    builder.Services.AddAuthorization();
 
     builder.Services.AddScoped<DataSeeder>();
 
@@ -116,6 +128,7 @@ try
     app.UseCors("ClinicVisit");
 
     app.UseHttpsRedirection();
+    app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
 

@@ -1,9 +1,21 @@
-﻿using SharedKernel.DTOs;
+using Blazored.LocalStorage;
+using SharedKernel.DTOs;
+using System.Net.Http.Headers;
 
 namespace BlazorClient.Services
 {
     public class AppStateService
     {
+        private const string UserStorageKey = "clinic.auth.user";
+        private readonly HttpClient _http;
+        private readonly ILocalStorageService _localStorage;
+
+        public AppStateService(HttpClient http, ILocalStorageService localStorage)
+        {
+            _http = http;
+            _localStorage = localStorage;
+        }
+
         public AuthResponseDto? CurrentUser { get; private set; }
         public PatientListItemDto? CurrentPatient { get; private set; }
 
@@ -22,8 +34,45 @@ namespace BlazorClient.Services
                     LastName = user.LastName
                 };
             }
+            else
+            {
+                CurrentPatient = null;
+            }
 
             OnChange?.Invoke();
+        }
+
+        public async Task InitializeAsync()
+        {
+            if (CurrentUser is not null)
+                return;
+
+            var user = await _localStorage.GetItemAsync<AuthResponseDto>(UserStorageKey);
+            if (user is null || string.IsNullOrWhiteSpace(user.Token) || user.TokenExpiresAtUtc <= DateTime.UtcNow)
+            {
+                await LogoutAsync();
+                return;
+            }
+
+            ApplyAuthorizationHeader(user.Token);
+            SetUser(user);
+        }
+
+        public async Task SetUserAsync(AuthResponseDto? user)
+        {
+            SetUser(user);
+
+            if (user is null)
+            {
+                await _localStorage.RemoveItemAsync(UserStorageKey);
+                _http.DefaultRequestHeaders.Authorization = null;
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(user.Token))
+                ApplyAuthorizationHeader(user.Token);
+
+            await _localStorage.SetItemAsync(UserStorageKey, user);
         }
 
         public void SetPatient(PatientListItemDto? patient)
@@ -57,7 +106,19 @@ namespace BlazorClient.Services
         {
             CurrentUser = null;
             CurrentPatient = null;
+            _http.DefaultRequestHeaders.Authorization = null;
             OnChange?.Invoke();
+        }
+
+        public async Task LogoutAsync()
+        {
+            Logout();
+            await _localStorage.RemoveItemAsync(UserStorageKey);
+        }
+
+        private void ApplyAuthorizationHeader(string token)
+        {
+            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
     }
 }

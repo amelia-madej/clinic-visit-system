@@ -86,13 +86,16 @@
     protected override void OnInitialized()
     {
         Nav.LocationChanged += OnLocationChanged;
-        RedirectIfLoggedOut();
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
+        {
+            await AppState.InitializeAsync();
             RedirectIfLoggedOut();
+            StateHasChanged();
+        }
     }
 
     private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
@@ -117,9 +120,9 @@
         _sidebarOpen = !_sidebarOpen;
     }
 
-    private void Switch()
+    private async Task Switch()
     {
-        AppState.Logout();
+        await AppState.LogoutAsync();
         Nav.NavigateTo("/");
     }
 
