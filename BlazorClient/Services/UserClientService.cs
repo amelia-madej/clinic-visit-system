@@ -9,6 +9,7 @@ namespace BlazorClient.Services
         Task<bool> UpdateProfileAsync(UpdateUserProfileDto dto);
         Task<bool> UpdatePhotoAsync(UpdateUserPhotoDto dto);
         Task<bool> DeletePhotoAsync(int userId);
+        Task<(bool Success, string? Error)> ChangePasswordAsync(ChangePasswordDto dto);
     }
 
     public class UserClientService : IUserClientService
@@ -41,6 +42,16 @@ namespace BlazorClient.Services
         {
             var response = await _http.DeleteAsync($"api/user/{userId}/photo");
             return response.IsSuccessStatusCode;
+        }
+
+        public async Task<(bool Success, string? Error)> ChangePasswordAsync(ChangePasswordDto dto)
+        {
+            var response = await _http.PutAsJsonAsync($"api/user/{dto.UserId}/password", dto);
+            if (response.IsSuccessStatusCode)
+                return (true, null);
+
+            var error = await response.Content.ReadAsStringAsync();
+            return (false, string.IsNullOrWhiteSpace(error) ? "Could not change password." : error.Trim('"'));
         }
     }
 }

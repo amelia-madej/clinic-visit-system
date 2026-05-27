@@ -44,18 +44,10 @@ namespace BlazorClient.Services
 
         public async Task InitializeAsync()
         {
-            if (CurrentUser is not null)
-                return;
+            await _localStorage.RemoveItemAsync(UserStorageKey);
 
-            var user = await _localStorage.GetItemAsync<AuthResponseDto>(UserStorageKey);
-            if (user is null || string.IsNullOrWhiteSpace(user.Token) || user.TokenExpiresAtUtc <= DateTime.UtcNow)
-            {
-                await LogoutAsync();
-                return;
-            }
-
-            ApplyAuthorizationHeader(user.Token);
-            SetUser(user);
+            if (CurrentUser is null)
+                Logout();
         }
 
         public async Task SetUserAsync(AuthResponseDto? user)
@@ -72,7 +64,7 @@ namespace BlazorClient.Services
             if (!string.IsNullOrWhiteSpace(user.Token))
                 ApplyAuthorizationHeader(user.Token);
 
-            await _localStorage.SetItemAsync(UserStorageKey, user);
+            await _localStorage.RemoveItemAsync(UserStorageKey);
         }
 
         public void SetPatient(PatientListItemDto? patient)

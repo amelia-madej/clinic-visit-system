@@ -56,6 +56,7 @@ builder.Services.AddScoped<IValidator<SickLeaveCompleteDto>, SickLeaveCompleteDt
 builder.Services.AddScoped<IValidator<CreateUserDto>, CreateUserValidator>();
 builder.Services.AddScoped<IValidator<UpdateUserDto>, UpdateUserValidator>();
 builder.Services.AddScoped<IValidator<UpdateUserProfileDto>, UpdateUserProfileValidator>();
+builder.Services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();
 builder.Services.AddScoped<IValidator<LoginDto>, LoginValidator>();
 
 // Repositories
@@ -88,6 +89,8 @@ builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();
 builder.Services.AddScoped<IPrescriptionItemService, PrescriptionItemService>();
 builder.Services.AddScoped<ISickLeaveService, SickLeaveService>();
 builder.Services.AddScoped<IAnomalyDetectionService, AnomalyDetectionService>();
+builder.Services.AddScoped<IPasswordHashService, PasswordHashService>();
+builder.Services.AddScoped<IPasswordMigrationService, PasswordMigrationService>();
 
 var app = builder.Build();
 app.Logger.LogInformation("BlazorServer application starting.");
@@ -110,6 +113,10 @@ using (var scope = app.Services.CreateScope())
     var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
     app.Logger.LogInformation("Ensuring baseline anomaly data.");
     seeder.EnsureBaselineAnomalyData();
+
+    var passwordMigrationService = scope.ServiceProvider.GetRequiredService<IPasswordMigrationService>();
+    var updatedPasswordCount = passwordMigrationService.HashPlainTextPasswords();
+    app.Logger.LogInformation("Password hash migration completed. Updated users: {UpdatedPasswordCount}", updatedPasswordCount);
 }
 
 app.Logger.LogInformation("BlazorServer application configured. Running host.");

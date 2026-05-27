@@ -274,3 +274,44 @@ code {
     font-size: 42px;
 }
 
+.profile-upload-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: auto;
+    min-width: 150px;
+    height: 36px;
+    padding: 0 16px;
+    border: 1px solid var(--rz-primary) !important;
+    border-radius: var(--rz-button-border-radius, 4px);
+    background-color: var(--rz-primary) !important;
+    color: #ffffff !important;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 36px;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: var(--rz-button-shadow, none);
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.profile-upload-button:hover {
+    background-color: var(--rz-primary-dark) !important;
+    border-color: var(--rz-primary-dark) !important;
+    box-shadow: 0 2px 8px rgba(11, 37, 69, 0.22);
+    color: #ffffff !important;
+}
+
+.profile-upload-button .rz-icon {
+    color: inherit !important;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.profile-upload-button span {
+    line-height: 1;
+}
+

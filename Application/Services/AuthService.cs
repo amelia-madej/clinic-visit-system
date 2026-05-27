@@ -10,12 +10,18 @@ namespace Application.Services
         private readonly IClinicUnitOfWork _uow;
         private readonly IMapper _mapper;
         private readonly IValidator<LoginDto> _loginValidator;
+        private readonly IPasswordHashService _passwordHashService;
 
-        public AuthService(IClinicUnitOfWork uow, IMapper mapper, IValidator<LoginDto> loginValidator)
+        public AuthService(
+            IClinicUnitOfWork uow,
+            IMapper mapper,
+            IValidator<LoginDto> loginValidator,
+            IPasswordHashService passwordHashService)
         {
             _uow = uow;
             _mapper = mapper;
             _loginValidator = loginValidator;
+            _passwordHashService = passwordHashService;
         }
 
         public AuthResponseDto Login(LoginDto dto)
@@ -30,9 +36,14 @@ namespace Application.Services
             if (user == null)
                 throw new Exception("Invalid email or password");
 
-            // NA RAZIE plain text
-            if (user.Password != dto.Password)
+            if (!_passwordHashService.Verify(dto.Password, user.Password))
                 throw new Exception("Invalid email or password");
+
+            if (!_passwordHashService.IsHash(user.Password))
+            {
+                user.Password = _passwordHashService.Hash(dto.Password);
+                _uow.Commit();
+            }
 
             return new AuthResponseDto
             {

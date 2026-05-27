@@ -86,4 +86,20 @@ namespace Application.Validators
                 .Matches(@"^\d{9}$");
         }
     }
+
+    public class ChangePasswordValidator : AbstractValidator<ChangePasswordDto>
+    {
+        public ChangePasswordValidator()
+        {
+            RuleFor(x => x.UserId)
+                .GreaterThan(0);
+
+            RuleFor(x => x.CurrentPassword)
+                .NotEmpty();
+
+            RuleFor(x => x.NewPassword)
+                .NotEmpty()
+                .MinimumLength(10);
+        }
+    }
 }

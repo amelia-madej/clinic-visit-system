@@ -81,6 +81,45 @@ else if (_user is not null)
                         </MudStack>
                     </EditForm>
                 </MudPaper>
+
+                <MudPaper Class="pa-4 mt-3">
+                    <EditForm Model="_passwordForm" OnValidSubmit="ChangePassword">
+                        <MudStack Spacing="3">
+                            <MudText Typo="Typo.h6">Change Password</MudText>
+
+                            <MudTextField @bind-Value="_passwordForm.CurrentPassword"
+                                          Label="Current password"
+                                          Required="true"
+                                          InputType="InputType.Password"
+                                          Variant="Variant.Outlined" />
+
+                            <MudGrid Spacing="2">
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="_passwordForm.NewPassword"
+                                                  Label="New password"
+                                                  Required="true"
+                                                  InputType="InputType.Password"
+                                                  Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="_passwordForm.ConfirmNewPassword"
+                                                  Label="Confirm new password"
+                                                  Required="true"
+                                                  InputType="InputType.Password"
+                                                  Variant="Variant.Outlined" />
+                                </MudItem>
+                            </MudGrid>
+
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.LockReset"
+                                       ButtonType="ButtonType.Submit"
+                                       Disabled="_changingPassword">
+                                Change password
+                            </MudButton>
+                        </MudStack>
+                    </EditForm>
+                </MudPaper>
             </MudItem>
         </MudGrid>
     </MudStack>
@@ -89,8 +128,10 @@ else if (_user is not null)
 @code {
     private UserDto? _user;
     private UpdateUserProfileDto _form = new();
+    private ChangePasswordForm _passwordForm = new();
     private bool _loading = true;
     private bool _saving;
+    private bool _changingPassword;
 
     protected override void OnInitialized()
     {
@@ -202,5 +243,55 @@ else if (_user is not null)
             Logger.LogError(ex, "Failed to remove profile photo for user id {UserId}.", _user.UserId);
             Snackbar.Add(ex.Message, Severity.Error);
         }
+    }
+
+    private void ChangePassword()
+    {
+        if (AppState.CurrentUser is null)
+            return;
+
+        if (_passwordForm.NewPassword.Length < 10)
+        {
+            Snackbar.Add("Password must contain at least 10 characters.", Severity.Error);
+            return;
+        }
+
+        if (_passwordForm.NewPassword != _passwordForm.ConfirmNewPassword)
+        {
+            Snackbar.Add("Passwords must match.", Severity.Error);
+            return;
+        }
+
+        _changingPassword = true;
+        Logger.LogInformation("Changing password for user id {UserId}.", AppState.CurrentUser.UserId);
+
+        try
+        {
+            UserService.ChangePassword(new ChangePasswordDto
+            {
+                UserId = AppState.CurrentUser.UserId,
+                CurrentPassword = _passwordForm.CurrentPassword,
+                NewPassword = _passwordForm.NewPassword
+            });
+
+            _passwordForm = new ChangePasswordForm();
+            Snackbar.Add("Password changed.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to change password for user id {UserId}.", AppState.CurrentUser.UserId);
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _changingPassword = false;
+        }
+    }
+
+    private sealed class ChangePasswordForm
+    {
+        public string CurrentPassword { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
+        public string ConfirmNewPassword { get; set; } = string.Empty;
     }
 }

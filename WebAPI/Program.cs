@@ -70,6 +70,7 @@ try
     builder.Services.AddScoped<IValidator<CreateUserDto>, CreateUserValidator>();
     builder.Services.AddScoped<IValidator<UpdateUserDto>, UpdateUserValidator>();
     builder.Services.AddScoped<IValidator<UpdateUserProfileDto>, UpdateUserProfileValidator>();
+    builder.Services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();
     builder.Services.AddScoped<IValidator<LoginDto>, LoginValidator>();
     // rejestracja klas
     builder.Services.AddScoped<IClinicUnitOfWork, ClinicUnitOfWork>();
@@ -97,6 +98,8 @@ try
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<IAnomalyDetectionService, AnomalyDetectionService>();
     builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+    builder.Services.AddScoped<IPasswordHashService, PasswordHashService>();
+    builder.Services.AddScoped<IPasswordMigrationService, PasswordMigrationService>();
 
     builder.Services
         .AddAuthentication(JwtAuthenticationHandler.SchemeName)
@@ -136,6 +139,10 @@ try
     {
         var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
         dataSeeder.EnsureBaselineAnomalyData();
+
+        var passwordMigrationService = scope.ServiceProvider.GetRequiredService<IPasswordMigrationService>();
+        var updatedPasswordCount = passwordMigrationService.HashPlainTextPasswords();
+        app.Logger.LogInformation("Password hash migration completed. Updated users: {UpdatedPasswordCount}", updatedPasswordCount);
     }
 
     app.Run();

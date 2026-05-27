@@ -235,6 +235,29 @@ namespace WebAPI.Controllers
             }
         }
 
+        // PUT api/user/{id}/password
+        [HttpPut("{id}/password")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult ChangePassword(int id, [FromBody] ChangePasswordDto dto)
+        {
+            _logger.LogInformation("Started changing password for user id {Id}", id);
+            try
+            {
+                if (id != dto.UserId)
+                    throw new Exception("Id param is not valid");
+
+                _userService.ChangePassword(dto);
+                _logger.LogInformation("Completed changing password for user id {Id}", id);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error while changing password for user id {Id}", id);
+                return BadRequest(ex.Message);
+            }
+        }
+
         // DELETE api/user/{id}/photo
         [HttpDelete("{id}/photo")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

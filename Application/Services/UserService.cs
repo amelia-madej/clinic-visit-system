@@ -19,19 +19,25 @@ namespace Application.Services
         private readonly IValidator<CreateUserDto> _createValidator;
         private readonly IValidator<UpdateUserDto> _updateValidator;
         private readonly IValidator<UpdateUserProfileDto> _profileValidator;
+        private readonly IValidator<ChangePasswordDto> _changePasswordValidator;
+        private readonly IPasswordHashService _passwordHashService;
 
         public UserService(
             IClinicUnitOfWork clinicUnitOfWork,
             IMapper mapper,
             IValidator<CreateUserDto> createValidator,
             IValidator<UpdateUserDto> updateValidator,
-            IValidator<UpdateUserProfileDto> profileValidator)
+            IValidator<UpdateUserProfileDto> profileValidator,
+            IValidator<ChangePasswordDto> changePasswordValidator,
+            IPasswordHashService passwordHashService)
         {
             _uow = clinicUnitOfWork;
             _mapper = mapper;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
             _profileValidator = profileValidator;
+            _changePasswordValidator = changePasswordValidator;
+            _passwordHashService = passwordHashService;
         }
 
         public int Create(CreateUserDto dto)
@@ -46,6 +52,7 @@ namespace Application.Services
                 throw new Exception("User with this email already exists");
 
             var user = _mapper.Map<User>(dto);
+            user.Password = _passwordHashService.Hash(dto.Password);
 
             _uow.UserRepository.Insert(user);
             _uow.Commit();
@@ -170,6 +177,24 @@ namespace Application.Services
                 throw new Exception("User not found");
 
             user.PhotoDataUrl = dto.PhotoDataUrl;
+            _uow.Commit();
+        }
+
+        public void ChangePassword(ChangePasswordDto dto)
+        {
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
+
+            _changePasswordValidator.ValidateAndThrow(dto);
+
+            var user = _uow.UserRepository.Get(dto.UserId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            if (!_passwordHashService.Verify(dto.CurrentPassword, user.Password))
+                throw new Exception("Current password is incorrect");
+
+            user.Password = _passwordHashService.Hash(dto.NewPassword);
             _uow.Commit();
         }
 

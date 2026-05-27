@@ -50,4 +50,11 @@ namespace SharedKernel.DTOs
         public int UserId { get; set; }
         public string PhotoDataUrl { get; set; } = null!;
     }
+
+    public class ChangePasswordDto
+    {
+        public int UserId { get; set; }
+        public string CurrentPassword { get; set; } = null!;
+        public string NewPassword { get; set; } = null!;
+    }
 }

@@ -32,7 +32,7 @@ else if (_user is not null)
                             <img style="width:168px;height:168px;border-radius:50%;object-fit:cover;border:3px solid #d8e2f1;" src="@_user.PhotoDataUrl" alt="Profile photo" />
                         }
 
-                        <label class="profile-upload-button">
+                        <label class="profile-upload-button rz-button rz-button-md">
                             <RadzenIcon Icon="photo_camera" Style="font-size:18px;" />
                             <span>Choose photo</span>
                             <InputFile OnChange="UploadPhoto" accept="image/*" style="display:none" />
@@ -88,6 +88,45 @@ else if (_user is not null)
                         </RadzenStack>
                     </RadzenTemplateForm>
                 </RadzenCard>
+
+                <RadzenCard Style="margin-top:18px;">
+                    <RadzenTemplateForm TItem="ChangePasswordForm" Data="@_passwordForm" Submit="@ChangePassword">
+                        <RadzenStack Gap="14px">
+                            <RadzenText Text="Change Password"
+                                        TextStyle="TextStyle.H6"
+                                        Style="margin:0; color: var(--rz-primary-dark); font-weight:600;" />
+
+                            <RadzenFormField Text="Current password" Style="width:100%;">
+                                <RadzenPassword Name="CurrentPassword" @bind-Value="_passwordForm.CurrentPassword" Style="width:100%;" />
+                            </RadzenFormField>
+                            <RadzenRequiredValidator Component="CurrentPassword" Text="Current password is required" />
+
+                            <RadzenRow Gap="12px">
+                                <RadzenColumn Size="12" SizeMD="6">
+                                    <RadzenFormField Text="New password" Style="width:100%;">
+                                        <RadzenPassword Name="NewPassword" @bind-Value="_passwordForm.NewPassword" Style="width:100%;" />
+                                    </RadzenFormField>
+                                    <RadzenRequiredValidator Component="NewPassword" Text="New password is required" />
+                                    <RadzenLengthValidator Component="NewPassword" Min="10" Text="Password must contain at least 10 characters" />
+                                </RadzenColumn>
+                                <RadzenColumn Size="12" SizeMD="6">
+                                    <RadzenFormField Text="Confirm new password" Style="width:100%;">
+                                        <RadzenPassword Name="ConfirmNewPassword" @bind-Value="_passwordForm.ConfirmNewPassword" Style="width:100%;" />
+                                    </RadzenFormField>
+                                    <RadzenRequiredValidator Component="ConfirmNewPassword" Text="Confirm password is required" />
+                                    <RadzenCompareValidator Component="ConfirmNewPassword" Value="@_passwordForm.NewPassword" Text="Passwords must match" />
+                                </RadzenColumn>
+                            </RadzenRow>
+
+                            <RadzenButton Text="Change password"
+                                          Icon="lock_reset"
+                                          ButtonType="ButtonType.Submit"
+                                          ButtonStyle="ButtonStyle.Primary"
+                                          Style="align-self:flex-start;"
+                                          Disabled="_changingPassword" />
+                        </RadzenStack>
+                    </RadzenTemplateForm>
+                </RadzenCard>
             </RadzenColumn>
         </RadzenRow>
     </RadzenStack>
@@ -96,8 +135,10 @@ else if (_user is not null)
 @code {
     private UserDto? _user;
     private UpdateUserProfileDto _form = new();
+    private ChangePasswordForm _passwordForm = new();
     private bool _loading = true;
     private bool _saving;
+    private bool _changingPassword;
 
     protected override async Task OnInitializedAsync()
     {
@@ -192,6 +233,45 @@ else if (_user is not null)
             success ? "Photo removed" : "Error",
             success ? "Profile photo removed." : "Could not remove photo.",
             4000);
+    }
+
+    private async Task ChangePassword()
+    {
+        if (AppState.CurrentUser is null)
+            return;
+
+        if (_passwordForm.NewPassword != _passwordForm.ConfirmNewPassword)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Invalid password", "Passwords must match.", 4000);
+            return;
+        }
+
+        _changingPassword = true;
+
+        var result = await UserService.ChangePasswordAsync(new ChangePasswordDto
+        {
+            UserId = AppState.CurrentUser.UserId,
+            CurrentPassword = _passwordForm.CurrentPassword,
+            NewPassword = _passwordForm.NewPassword
+        });
+
+        NotificationService.Notify(
+            result.Success ? NotificationSeverity.Success : NotificationSeverity.Error,
+            result.Success ? "Password changed" : "Error",
+            result.Success ? "Your password has been changed." : result.Error ?? "Could not change password.",
+            4000);
+
+        if (result.Success)
+            _passwordForm = new ChangePasswordForm();
+
+        _changingPassword = false;
+    }
+
+    private sealed class ChangePasswordForm
+    {
+        public string CurrentPassword { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
+        public string ConfirmNewPassword { get; set; } = string.Empty;
     }
 }
 

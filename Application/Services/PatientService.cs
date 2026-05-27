@@ -18,17 +18,20 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly IValidator<PatientCreateDto> _createValidator;
         private readonly IValidator<PatientUpdateDto> _updateValidator;
+        private readonly IPasswordHashService _passwordHashService;
 
         public PatientService(
             IClinicUnitOfWork clinicUnitOfWork,
             IMapper mapper,
             IValidator<PatientCreateDto> createValidator,
-            IValidator<PatientUpdateDto> updateValidator)
+            IValidator<PatientUpdateDto> updateValidator,
+            IPasswordHashService passwordHashService)
         {
             _uow = clinicUnitOfWork;
             _mapper = mapper;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
+            _passwordHashService = passwordHashService;
         }
         public int Create(PatientCreateDto dto)
         {
@@ -45,6 +48,7 @@ namespace Application.Services
 
             var user = _mapper.Map<User>(dto);
             user.Role = UserRole.Patient;
+            user.Password = _passwordHashService.Hash(dto.Password);
 
             _uow.UserRepository.Insert(user);
             _uow.Commit(); 
