@@ -213,8 +213,10 @@
                                 <RadzenDataGrid Data="@rx.Items"
                                                 TItem="PrescriptionItemDto"
                                                 AllowPaging="false"
-                                                AllowSorting="false"
-                                                AllowFiltering="false"
+                                                AllowSorting="true"
+                                                AllowFiltering="true"
+                                                FilterMode="FilterMode.Advanced"
+                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                                 Style="margin-top:10px">
 
                                     <Columns>

@@ -1,7 +1,6 @@
 @page "/visits"
 @inject IVisitService VisitService
 @inject IPatientService PatientService
-@inject IDoctorService DoctorService
 @inject ISnackbar Snackbar
 @inject AppStateService AppState
 @inject NavigationManager Nav
@@ -30,7 +29,7 @@
              Loading="_loading">
     <Columns>
         <PropertyColumn Property="v => v.VisitDateTime" Title="Date & Time" Format="dd/MM/yyyy HH:mm" Sortable="true" />
-        <TemplateColumn Title="Patient" Sortable="false">
+        <PropertyColumn Property="v => v.Patient!.FullName" Title="Patient" Sortable="true">
             <CellTemplate>
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                     <MudAvatar Size="Size.Small" Color="Color.Primary">
@@ -46,8 +45,8 @@
                     <MudText>@context.Item.Patient?.FirstName @context.Item.Patient?.LastName</MudText>
                 </MudStack>
             </CellTemplate>
-        </TemplateColumn>
-        <TemplateColumn Title="Doctor" Sortable="false">
+        </PropertyColumn>
+        <PropertyColumn Property="v => v.Doctor!.FullName" Title="Doctor" Sortable="true">
             <CellTemplate>
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                     <MudAvatar Size="Size.Small" Color="Color.Secondary">
@@ -63,20 +62,32 @@
                     <MudText>@context.Item.Doctor?.FirstName @context.Item.Doctor?.LastName</MudText>
                 </MudStack>
             </CellTemplate>
-        </TemplateColumn>
+        </PropertyColumn>
         <PropertyColumn Property="v => v.VisitType" Title="Type" Sortable="true" />
-        <TemplateColumn Title="Status" Sortable="false">
+        <PropertyColumn Property="v => v.Status" Title="Status" Sortable="true">
             <CellTemplate>
                 <MudChip T="string" Size="Size.Small" Color="@StatusColor(context.Item.Status)">
                     @context.Item.Status
                 </MudChip>
             </CellTemplate>
-        </TemplateColumn>
-        <TemplateColumn Title="" Sortable="false">
+        </PropertyColumn>
+        <TemplateColumn Title="" Sortable="false" Filterable="false">
             <CellTemplate>
-                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
-                               Size="Size.Small"
-                               Href="@($"visits/{context.Item.VisitId}")" />
+                <MudStack Row="true" Spacing="1">
+                    <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                   Size="Size.Small"
+                                   Href="@($"visits/{context.Item.VisitId}")" />
+                    <MudIconButton Icon="@Icons.Material.Filled.EditCalendar"
+                                   Size="Size.Small"
+                                   Color="Color.Primary"
+                                   Disabled="@(!CanReschedule(context.Item))"
+                                   OnClick="@(() => OpenEditDialog(context.Item))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Cancel"
+                                   Size="Size.Small"
+                                   Color="Color.Error"
+                                   Disabled="@(!CanCancel(context.Item))"
+                                   OnClick="@(() => CancelVisit(context.Item))" />
+                </MudStack>
             </CellTemplate>
         </TemplateColumn>
     </Columns>
@@ -95,20 +106,11 @@
     </TitleContent>
     <DialogContent>
         <MudStack Spacing="3">
-            <MudSelect T="int" Label="Patient" @bind-Value="_form.PatientId" Required="true">
+            <MudSelect T="int?" Label="Patient" @bind-Value="_selectedPatientId" Required="true" Clearable="true">
                 @foreach (var p in _patients)
                 {
-                    <MudSelectItem T="int" Value="@p.PatientId">
+                    <MudSelectItem T="int?" Value="@((int?)p.PatientId)">
                         @p.FirstName @p.LastName
-                    </MudSelectItem>
-                }
-            </MudSelect>
-
-            <MudSelect T="int" Label="Doctor" @bind-Value="_form.DoctorId" Required="true">
-                @foreach (var d in _doctors)
-                {
-                    <MudSelectItem T="int" Value="@d.DoctorId">
-                        @d.FirstName @d.LastName (@d.Specialization)
                     </MudSelectItem>
                 }
             </MudSelect>
@@ -129,16 +131,37 @@
     </DialogActions>
 </MudDialog>
 
+@* Edit visit date dialog *@
+<MudDialog @bind-Visible="_editDialogOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Edit Visit Date</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudDatePicker Label="Date" @bind-Date="_editDate" Required="true" />
+            <MudTimePicker Label="Time" @bind-Time="_editTime" Required="true" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseEditDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveVisitDate">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
 @code {
     private List<VisitListItemDto>     _visits   = new();
     private List<PatientListItemDto>   _patients = new();
-    private List<DoctorListItemDto>    _doctors  = new();
     private bool _loading           = true;
     private bool _createDialogOpen  = false;
+    private bool _editDialogOpen    = false;
 
     private VisitCreateDto _form     = new();
+    private int?           _selectedPatientId;
     private DateTime?      _formDate = DateTime.Today;
     private TimeSpan?      _formTime = new TimeSpan(8, 0, 0);
+    private VisitListItemDto? _editingVisit;
+    private DateTime?      _editDate;
+    private TimeSpan?      _editTime;
 
     private readonly DialogOptions _dialogOptions = new()
     {
@@ -160,8 +183,7 @@
         {
             Logger.LogDebug("Started loading visit form lookup data.");
             _patients = PatientService.GetAll();
-            _doctors  = DoctorService.GetAll();
-            Logger.LogDebug("Completed loading visit form lookup data. Patients: {PatientCount}, Doctors: {DoctorCount}", _patients.Count, _doctors.Count);
+            Logger.LogDebug("Completed loading visit form lookup data. Patients: {PatientCount}", _patients.Count);
         }
         catch (Exception ex)
         {
@@ -207,6 +229,7 @@
     {
         Logger.LogInformation("Opening create visit dialog.");
         _form     = new VisitCreateDto();
+        _selectedPatientId = null;
         _formDate = DateTime.Today;
         _formTime = new TimeSpan(8, 0, 0);
         _createDialogOpen = true;
@@ -220,6 +243,17 @@
 
     private void CreateVisit()
     {
+        if (AppState.CurrentDoctor is null)
+            return;
+
+        if (_selectedPatientId is null)
+        {
+            Snackbar.Add("Select a patient.", Severity.Error);
+            return;
+        }
+
+        _form.PatientId = _selectedPatientId.Value;
+        _form.DoctorId = AppState.CurrentDoctor.DoctorId;
         _form.VisitDateTime = (_formDate ?? DateTime.Today) + (_formTime ?? TimeSpan.Zero);
 
         try
@@ -238,6 +272,87 @@
             Snackbar.Add(ex.Message, Severity.Error);
         }
     }
+
+    private void OpenEditDialog(VisitListItemDto visit)
+    {
+        if (!CanReschedule(visit))
+            return;
+
+        _editingVisit = visit;
+        _editDate = visit.VisitDateTime.Date;
+        _editTime = visit.VisitDateTime.TimeOfDay;
+        _editDialogOpen = true;
+    }
+
+    private void CloseEditDialog()
+    {
+        _editDialogOpen = false;
+        _editingVisit = null;
+    }
+
+    private void SaveVisitDate()
+    {
+        if (_editingVisit?.Patient is null || _editingVisit.Doctor is null)
+            return;
+
+        var dto = new VisitUpdateDto
+        {
+            VisitId = _editingVisit.VisitId,
+            PatientId = _editingVisit.Patient.PatientId,
+            DoctorId = AppState.CurrentDoctor?.DoctorId ?? _editingVisit.Doctor.DoctorId,
+            VisitDateTime = (_editDate ?? DateTime.Today) + (_editTime ?? TimeSpan.Zero),
+            VisitType = _editingVisit.VisitType,
+            Status = _editingVisit.Status
+        };
+
+        try
+        {
+            Logger.LogInformation("Updating visit date for visit id {VisitId}.", dto.VisitId);
+            VisitService.Update(dto);
+            CloseEditDialog();
+            LoadVisits();
+            Snackbar.Add("Visit date updated.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to update visit date for visit id {VisitId}.", dto.VisitId);
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+    }
+
+    private void CancelVisit(VisitListItemDto visit)
+    {
+        if (!CanCancel(visit) || visit.Patient is null || visit.Doctor is null)
+            return;
+
+        var dto = new VisitUpdateDto
+        {
+            VisitId = visit.VisitId,
+            PatientId = visit.Patient.PatientId,
+            DoctorId = AppState.CurrentDoctor?.DoctorId ?? visit.Doctor.DoctorId,
+            VisitDateTime = visit.VisitDateTime,
+            VisitType = visit.VisitType,
+            Status = nameof(VisitStatus.Cancelled)
+        };
+
+        try
+        {
+            Logger.LogInformation("Cancelling visit id {VisitId}.", dto.VisitId);
+            VisitService.Update(dto);
+            LoadVisits();
+            Snackbar.Add("Visit cancelled.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to cancel visit id {VisitId}.", dto.VisitId);
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+    }
+
+    private bool CanCancel(VisitListItemDto visit) => visit.Status == nameof(VisitStatus.Scheduled);
+
+    private bool CanReschedule(VisitListItemDto visit) =>
+        visit.Status == nameof(VisitStatus.Scheduled) && visit.VisitDateTime >= DateTime.Now.AddMinutes(-5);
 
     private Color StatusColor(string status) => status switch
     {

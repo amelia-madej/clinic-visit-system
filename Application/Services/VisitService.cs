@@ -68,8 +68,24 @@ namespace Application.Services
             if (visit == null)
                 throw new Exception("Visit not found");
 
+            if (visit.Status == VisitStatus.Completed)
+                throw new Exception("Completed visits cannot be changed");
+
             if (!Enum.TryParse<VisitType>(dto.VisitType, out var visitType))
                 throw new Exception($"Invalid visit type: {dto.VisitType}");
+
+            var requestedStatus = visit.Status;
+            if (!string.IsNullOrEmpty(dto.Status))
+            {
+                if (!Enum.TryParse<VisitStatus>(dto.Status, out requestedStatus))
+                    throw new Exception($"Invalid visit status: {dto.Status}");
+
+                if (requestedStatus == VisitStatus.Completed)
+                    throw new Exception("Use POST /api/Visit/{id}/complete to complete a visit");
+            }
+
+            if (requestedStatus != VisitStatus.Cancelled && dto.VisitDateTime < DateTime.UtcNow.AddMinutes(-5))
+                throw new Exception("VisitDateTime must not be in the past");
 
             visit.PatientId = dto.PatientId;
             visit.DoctorId = dto.DoctorId;
@@ -78,13 +94,7 @@ namespace Application.Services
 
             if (!string.IsNullOrEmpty(dto.Status))
             {
-                if (!Enum.TryParse<VisitStatus>(dto.Status, out var status))
-                    throw new Exception($"Invalid visit status: {dto.Status}");
-
-                if (status == VisitStatus.Completed)
-                    throw new Exception("Use POST /api/Visit/{id}/complete to complete a visit");
-
-                visit.Status = status;
+                visit.Status = requestedStatus;
             }
 
             _uow.Commit();

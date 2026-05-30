@@ -76,6 +76,7 @@
                 </RadzenDataGridColumn>
 
                 <RadzenDataGridColumn TItem="VisitListItemDto"
+                                      Property="Doctor.FullName"
                                       Title="Doctor">
 
                     <Template Context="visit">
@@ -110,16 +111,30 @@
                 </RadzenDataGridColumn>
 
                 <RadzenDataGridColumn TItem="VisitListItemDto"
-                                      Title="Details"
-                                      Width="120px"
+                                      Title="Actions"
+                                      Width="170px"
                                       Sortable="false"
                                       Filterable="false">
 
                     <Template Context="visit">
-                        <RadzenButton Icon="visibility"
-                                      ButtonStyle="ButtonStyle.Light"
-                                      Size="ButtonSize.Small"
-                                      Click="@(() => GoToDetails(visit.VisitId))" />
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="6px">
+                            <RadzenButton Icon="visibility"
+                                          ButtonStyle="ButtonStyle.Light"
+                                          Size="ButtonSize.Small"
+                                          Click="@(() => GoToDetails(visit.VisitId))" />
+                            <RadzenButton Icon="edit_calendar"
+                                          ButtonStyle="ButtonStyle.Primary"
+                                          Variant="Variant.Outlined"
+                                          Size="ButtonSize.Small"
+                                          Disabled="@(!CanReschedule(visit))"
+                                          Click="@(() => OpenEditModal(visit))" />
+                            <RadzenButton Icon="cancel"
+                                          ButtonStyle="ButtonStyle.Danger"
+                                          Variant="Variant.Outlined"
+                                          Size="ButtonSize.Small"
+                                          Disabled="@(!CanCancel(visit))"
+                                          Click="@(() => CancelVisit(visit))" />
+                        </RadzenStack>
                     </Template>
 
                 </RadzenDataGridColumn>
@@ -215,13 +230,60 @@
     </div>
 }
 
+@if (_showEditModal)
+{
+    <div class="modal-backdrop" @onclick="CloseEditModal">
+        <div class="modal-box" @onclick:stopPropagation="true">
+            <RadzenStack Gap="10px" class="modal-header"
+                         Orientation="Orientation.Horizontal"
+                         JustifyContent="JustifyContent.SpaceBetween"
+                         AlignItems="AlignItems.Center">
+                <RadzenText Text="Change visit date"
+                            TextStyle="TextStyle.H5"
+                            Style="margin:0; color: var(--rz-primary-dark)" />
+                <RadzenButton Icon="close"
+                              ButtonStyle="ButtonStyle.Light"
+                              Size="ButtonSize.Small"
+                              Click="@CloseEditModal" />
+            </RadzenStack>
+
+            <RadzenStack Gap="16px" class="modal-body">
+                <RadzenStack Gap="6px">
+                    <RadzenText Text="Date and time" TextStyle="TextStyle.Caption" />
+                    <RadzenDatePicker @bind-Value="_editVisitDateTime"
+                                      ShowTime="true"
+                                      DateFormat="dd.MM.yyyy HH:mm"
+                                      Style="width:100%" />
+                </RadzenStack>
+            </RadzenStack>
+
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         JustifyContent="JustifyContent.End"
+                         Gap="10px"
+                         class="modal-footer">
+                <RadzenButton Text="Cancel"
+                              ButtonStyle="ButtonStyle.Light"
+                              Click="@CloseEditModal" />
+                <RadzenButton Text="Save"
+                              Icon="save"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Click="@SaveVisitDate"
+                              Disabled="@_submitting" />
+            </RadzenStack>
+        </div>
+    </div>
+}
+
 @code {
     private List<VisitListItemDto> _visits = new();
     private List<DoctorListItemDto> _doctors = new();
     private bool _loading = true;
     private bool _showModal = false;
+    private bool _showEditModal = false;
     private bool _submitting = false;
     private string? _formError;
+    private VisitListItemDto? _editingVisit;
+    private DateTime _editVisitDateTime;
 
     private readonly List<string> _statusOptions =
         Enum.GetNames(typeof(VisitStatus)).ToList();
@@ -261,6 +323,22 @@
     }
 
     private void CloseModal() => _showModal = false;
+
+    private void OpenEditModal(VisitListItemDto visit)
+    {
+        if (!CanReschedule(visit))
+            return;
+
+        _editingVisit = visit;
+        _editVisitDateTime = visit.VisitDateTime;
+        _showEditModal = true;
+    }
+
+    private void CloseEditModal()
+    {
+        _showEditModal = false;
+        _editingVisit = null;
+    }
 
     private void GoToDetails(int visitId)
         => Nav.NavigateTo($"/patient/visits/{visitId}");
@@ -309,6 +387,63 @@
         _submitting = false;
     }
 
+    private async Task SaveVisitDate()
+    {
+        if (_editingVisit?.Doctor is null || AppState.CurrentPatient is null)
+            return;
+
+        _submitting = true;
+
+        var success = await VisitService.UpdateAsync(new VisitUpdateDto
+        {
+            VisitId = _editingVisit.VisitId,
+            PatientId = AppState.CurrentPatient.PatientId,
+            DoctorId = _editingVisit.Doctor.DoctorId,
+            VisitDateTime = _editVisitDateTime,
+            VisitType = _editingVisit.VisitType,
+            Status = _editingVisit.Status
+        });
+
+        if (success)
+        {
+            _visits = await VisitService.GetByPatientIdAsync(AppState.CurrentPatient.PatientId);
+            NotificationService.Notify(NotificationSeverity.Success, "Saved", "Visit date updated.", 4000);
+            CloseEditModal();
+        }
+        else
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Could not update visit date.", 4000);
+        }
+
+        _submitting = false;
+    }
+
+    private async Task CancelVisit(VisitListItemDto visit)
+    {
+        if (!CanCancel(visit) || visit.Doctor is null || AppState.CurrentPatient is null)
+            return;
+
+        var success = await VisitService.UpdateAsync(new VisitUpdateDto
+        {
+            VisitId = visit.VisitId,
+            PatientId = AppState.CurrentPatient.PatientId,
+            DoctorId = visit.Doctor.DoctorId,
+            VisitDateTime = visit.VisitDateTime,
+            VisitType = visit.VisitType,
+            Status = nameof(VisitStatus.Cancelled)
+        });
+
+        if (success)
+        {
+            _visits = await VisitService.GetByPatientIdAsync(AppState.CurrentPatient.PatientId);
+            NotificationService.Notify(NotificationSeverity.Success, "Cancelled", "Visit cancelled.", 4000);
+        }
+        else
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Could not cancel visit.", 4000);
+        }
+    }
+
     private BadgeStyle GetBadgeStyle(string status) => status switch
     {
         "Completed" => BadgeStyle.Success,
@@ -316,6 +451,11 @@
         "Scheduled" => BadgeStyle.Info,
         _ => BadgeStyle.Warning
     };
+
+    private bool CanCancel(VisitListItemDto visit) => visit.Status == nameof(VisitStatus.Scheduled);
+
+    private bool CanReschedule(VisitListItemDto visit) =>
+        visit.Status == nameof(VisitStatus.Scheduled) && visit.VisitDateTime >= DateTime.Now.AddMinutes(-5);
 
     private class VisitCreateFormModel
     {

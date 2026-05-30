@@ -19,7 +19,9 @@ namespace Application.Validators
     {
         public VisitUpdateDtoValidator()
         {
-            Include(new VisitCreateDtoValidator());
+            RuleFor(x => x.PatientId).GreaterThan(0);
+            RuleFor(x => x.DoctorId).GreaterThan(0);
+            RuleFor(x => x.VisitType).NotEmpty();
             RuleFor(x => x.VisitId).GreaterThan(0);
         }
     }

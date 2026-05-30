@@ -62,6 +62,7 @@
                                       Width="160px" />
 
                 <RadzenDataGridColumn TItem="PrescriptionDetailsDto"
+                                      Property="ValidUntil"
                                       Title="Status"
                                       Width="140px">
 
@@ -81,8 +82,10 @@
                         <RadzenDataGrid Data="@rx.Items"
                                         TItem="PrescriptionItemDto"
                                         AllowPaging="false"
-                                        AllowSorting="false"
-                                        AllowFiltering="false">
+                                        AllowSorting="true"
+                                        AllowFiltering="true"
+                                        FilterMode="FilterMode.Advanced"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
 
                             <Columns>
 

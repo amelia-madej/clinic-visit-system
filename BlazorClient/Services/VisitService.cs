@@ -8,6 +8,7 @@ namespace BlazorClient.Services
         Task<List<VisitListItemDto>> GetByPatientIdAsync(int patientId);
         Task<VisitDetailsDto?> GetByIdAsync(int visitId);
         Task<bool> CreateAsync(VisitCreateDto dto);
+        Task<bool> UpdateAsync(VisitUpdateDto dto);
         Task<PrescriptionDetailsDto?> GetPrescriptionByIdAsync(int visitId);
     }
     public class VisitService : IVisitService
@@ -37,6 +38,12 @@ namespace BlazorClient.Services
         public async Task<bool> CreateAsync(VisitCreateDto dto)
         {
             var response = await _http.PostAsJsonAsync("api/visit", dto);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> UpdateAsync(VisitUpdateDto dto)
+        {
+            var response = await _http.PutAsJsonAsync("api/visit", dto);
             return response.IsSuccessStatusCode;
         }
     }
