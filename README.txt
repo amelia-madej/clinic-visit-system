@@ -1,240 +1,409 @@
-================================================================================
-CLINIC VISIT SYSTEM - INFORMACJE SYSTEMOWE
-================================================================================
-
-OPIS PROJEKTU:
-System zarządzania wizytami lekarskimi i dokumentacją medyczną. Umożliwia
-zarządzanie pacjentami, harmonogramem wizyt, historią medyczną, receptami
-i zaświadczeniami lekarskimi.
-
-================================================================================
-1. INSTALACJA I URUCHOMIENIE
+﻿================================================================================
+CLINIC VISIT SYSTEM - INFORMACJE DO URUCHOMIENIA
 ================================================================================
 
-WYMAGANIA:
-- .NET 8.0 lub nowsza
-- SQLite (baza danych - nie wymaga instalacji)
-- Visual Studio 2022 / VS Code
-
-BUDOWANIE PROJEKTU:
-1. Otwórz terminal w głównym katalogu projektu
-2. Uruchom: dotnet build
-3. Lub uruchom zadanie w VS Code: Tasks > Run Task > build: all
-
-URUCHOMIENIE:
-1. WebAPI (Backend):
-   dotnet run --project WebAPI/WebAPI.csproj
-   Dostęp: https://localhost:7186 (Swagger: https://localhost:7186/swagger)
-
-2. BlazorServer (Interfejs dla lekarzy):
-   dotnet run --project BlazorServer/BlazorServer.csproj
-   Dostęp: https://localhost:7001
-
-3. BlazorClient (Alternatywny interfejs):
-   dotnet run --project BlazorClient/BlazorClient.csproj
-   Dostęp: https://localhost:7002
-
-================================================================================
-2. DANE TESTOWE (SEEDING)
+1. SKŁAD GRUPY PROJEKTOWEJ
 ================================================================================
 
-Baza danych jest automatycznie inicjalizowana z danymi testowymi przy
-pierwszym uruchomieniu. Dane są seeded z pliku: Infrastructure/DataSeeder.cs
-
-KONTA DO LOGOWANIA:
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ LEKARZE                                                                     │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ Email:      john.doe@example.com                                            │
-│ Hasło:      password123                                                     │
-│ Rola:       Doctor (Lekarz)                                                │
-│ Nazwa:      John Doe                                                       │
-│ Specjalizacja: Cardiology (Kardiologia)                                    │
-│ Uprawnienia:                                                               │
-│   - Przeglądanie pacjentów                                                 │
-│   - Zarządzanie wizytami                                                   │
-│   - Dodawanie historii medycznej                                           │
-│   - Wystawianie recept                                                     │
-│   - Wystawianie zaświadczeń lekarskich                                     │
-└────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ PACJENCI                                                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ Email:      jane.smith@example.com          Hasło: password123             │
-│ Email:      anna.kowalska@example.com       Hasło: password123             │
-│ Email:      marek.nowak@example.com         Hasło: password123             │
-│ Rola:       Patient (Pacjent)                                              │
-│ Uprawnienia:                                                                │
-│   - Przeglądanie swoich wizyt                                              │
-│   - Przeglądanie historii medycznej                                        │
-│   - Pobieranie recept i zaświadczeń                                        │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ ADMINISTRATOR                                                               │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ Email:      admin@example.com                                               │
-│ Hasło:      admin123                                                        │
-│ Rola:       Admin                                                           │
-│ Uprawnienia:                                                                │
-│   - Zarządzanie wszystkimi użytkownikami                                    │
-│   - Pełny dostęp do systemu                                                 │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-DANE PACJENTÓW:
-
-1. Jane Smith
-   PESEL:        12345678901
-   Data urodzenia: 01.01.1990
-   Płeć:         Kobieta
-   Adres:        123 Main St
-
-2. Anna Kowalska
-   PESEL:        98765432100
-   Data urodzenia: 15.06.1985
-   Płeć:         Kobieta
-   Adres:        ul. Kwiatowa 5, Warszawa
-
-3. Marek Nowak
-   PESEL:        55031208193
-   Data urodzenia: 12.03.1955
-   Płeć:         Mężczyzna
-   Adres:        ul. Lipowa 12, Kraków
-
-PRZYKŁADOWE WIZYTY:
-- Zaplanowane wizyty (Scheduled)
-- Zakończone wizyty (Completed)
-- Anulowane wizyty (Cancelled)
-
-Typy wizyt: In-Person (osobiście), Telemedicine (tele-wizyta), HomeVisit (domowa)
+- Justyna Sarkowicz
+- Amelia Madej
+- Weronika Duda
 
 ================================================================================
-3. STRUKTURA BAZY DANYCH
+2. OPIS PROJEKTU
 ================================================================================
 
-MAIN TABLES:
-- Users (Użytkownicy)
-- Doctors (Lekarze)
-- Patients (Pacjenci)
-- Visits (Wizyty)
-- MedicalRecords (Historia medyczna)
-- Medications (Leki)
-- Prescriptions (Recepty)
-- PrescriptionItems (Pozycje recept)
-- SickLeaves (Zaświadczenia lekarskie)
+Clinic Visit System to aplikacja biznesowa do obsługi przychodni medycznej.
+System obsługuje lekarzy, pacjentów, wizyty, dokumentację medyczną, recepty,
+leki, zwolnienia lekarskie oraz panel administratora z wykrywaniem anomalii.
 
-Baza danych: ClinicVisitSystem.db (SQLite)
+Projekt wykorzystuje bazę SQLite:
+- ClinicVisitSystem.db
+
+Hasła użytkowników w bazie są przechowywane jako hashe PBKDF2, a logowanie
+w WebAPI i Blazor WebAssembly korzysta z tokenów JWT.
 
 ================================================================================
-4. ARCHITEKTURA PROJEKTU
+3. WYMAGANIA TECHNICZNE
 ================================================================================
 
-Domain/          - Modele domeny i interfejsy (core biznesowy)
-Infrastructure/  - Implementacja bazy danych, seeding, repozytoria
-Application/     - Usługi biznesowe, walidatory, mapowania
-WebAPI/          - REST API (ASP.NET Core Controllers)
-BlazorServer/    - Interfejs dla lekarzy (Razor Components)
-BlazorClient/    - Alternatywny interfejs (Blazor WebAssembly)
-SharedKernel/    - Wspólne enumeracje i DTOs
+- .NET 8.0 SDK lub nowszy
+- Visual Studio 2022 albo Visual Studio Code
+- SQLite nie wymaga osobnej instalacji, ponieważ baza jest plikiem .db
+
+Przed uruchomieniem profili HTTPS warto wykonać:
+
+dotnet dev-certs https --trust
+
+Bez certyfikatu developerskiego aplikacje mogą uruchamiać się po HTTP, ale
+profile HTTPS mogą zwracać błąd:
+"Unable to configure HTTPS endpoint".
 
 ================================================================================
-5. ENDPOINTY API
+4. URUCHOMIENIE PROJEKTU
 ================================================================================
 
-AUTHENTICATION:
-POST   /api/auth/login              - Logowanie
-POST   /api/auth/logout             - Wylogowanie
+Zalecana kolejność uruchamiania:
 
-USERS:
-GET    /api/users                   - Lista użytkowników
-GET    /api/users/{id}              - Szczegóły użytkownika
-POST   /api/users                   - Nowy użytkownik
-PUT    /api/users/{id}              - Aktualizacja użytkownika
-DELETE /api/users/{id}              - Usunięcie użytkownika
+1. WebAPI
+   dotnet run --project WebAPI/WebAPI.csproj --launch-profile https
 
-DOCTORS:
-GET    /api/doctors                 - Lista lekarzy
-GET    /api/doctors/{id}            - Szczegóły lekarza
-POST   /api/doctors                 - Nowy lekarz
-PUT    /api/doctors/{id}            - Aktualizacja lekarza
+   Adresy:
+   - https://localhost:7013
+   - http://localhost:5196
+   - Swagger: https://localhost:7013/swagger
 
-PATIENTS:
-GET    /api/patients                - Lista pacjentów
-GET    /api/patients/{id}           - Szczegóły pacjenta
-POST   /api/patients                - Nowy pacjent
-PUT    /api/patients/{id}           - Aktualizacja pacjenta
+2. BlazorServer - panel lekarza i administratora
+   dotnet run --project BlazorServer/BlazorServer.csproj --launch-profile BlazorServer
 
-VISITS:
-GET    /api/visits                  - Lista wizyt
-GET    /api/visits/{id}             - Szczegóły wizyty
-POST   /api/visits                  - Nowa wizyta
-PUT    /api/visits/{id}             - Aktualizacja wizyty
-DELETE /api/visits/{id}             - Anulowanie wizyty
+   Adresy:
+   - https://localhost:7148
+   - http://localhost:5251
 
-MEDICAL RECORDS:
-GET    /api/medicalrecords          - Lista historii
-POST   /api/medicalrecords          - Nowa historia
-PUT    /api/medicalrecords/{id}     - Aktualizacja historii
+3. BlazorClient - Blazor WebAssembly, panel pacjenta
+   dotnet run --project BlazorClient/BlazorClient.csproj --launch-profile https
 
-PRESCRIPTIONS:
-GET    /api/prescriptions           - Lista recept
-POST   /api/prescriptions           - Nowa recepta
-PUT    /api/prescriptions/{id}      - Aktualizacja recepty
+   Adresy:
+   - https://localhost:7003
+   - http://localhost:5299
 
-SICK LEAVES:
-GET    /api/sickleaves              - Lista zaświadczeń
-POST   /api/sickleaves              - Nowe zaświadczenie
-
-MEDICATIONS:
-GET    /api/medications             - Lista leków
-
-Dokumentacja API: https://localhost:7186/swagger (Swagger UI)
+Konfiguracja klienta WASM:
+- BlazorClient/wwwroot/appsettings.json
+- ClinicVisitAPIUrl = https://localhost:7013
+- ClinicVisitServerUrl = https://localhost:7148
 
 ================================================================================
-6. LOGI SYSTEMOWE
+5. KONTA DO LOGOWANIA
 ================================================================================
 
-Logi są zapisywane w folderze: WebAPI/logs/
-Konfiguracja: nlog.config
+Role w bazie:
+- 0 = Administrator
+- 1 = Doctor
+- 2 = Patient
+
+Hasła są zapisane w bazie jako PBKDF2, ale poniższe hasła jawne są poprawnymi
+danymi logowania do kont seedowanych.
+
+ADMINISTRATORZY:
+
+1. admin@example.com
+   Hasło: admin123
+   Rola: Administrator
+
+2. admin@clinic.local
+   Hasło: admin123
+   Rola: Administrator
+
+LEKARZE:
+
+1. john.doe@example.com
+   Hasło: password123
+   Rola: Doctor
+   Imię i nazwisko: John Doe
+
+2. doctor1@clinic.local
+   Hasło: password123
+   Rola: Doctor
+   Imię i nazwisko: Adam Nowak
+
+3. doctor2@clinic.local
+   Hasło: password123
+   Rola: Doctor
+   Imię i nazwisko: Ewa Kowalski
+
+4. doctor3@clinic.local
+   Hasło: password123
+   Rola: Doctor
+   Imię i nazwisko: Piotr Wiśniewski
+
+5. doctor4@clinic.local
+   Hasło: password123
+   Rola: Doctor
+   Imię i nazwisko: Maria Zieliński
+
+6. doctor5@clinic.local
+   Hasło: password123
+   Rola: Doctor
+   Imię i nazwisko: Tomasz Wójcik
+
+7. doctor6@clinic.local
+   Hasło: password123
+   Rola: Doctor
+   Imię i nazwisko: Katarzyna Kamińska
+
+PACJENCI:
+
+1. jane.smith@example.com
+   Hasło: password123
+   Rola: Patient
+
+2. anna.kowalska@example.com
+   Hasło: password123
+   Rola: Patient
+
+3. marek.nowak@example.com
+   Hasło: password123
+   Rola: Patient
+
+4. patient1@clinic.local do patient40@clinic.local
+   Hasło: password123
+   Rola: Patient
+
+5. michalik@mail.com
+   Rola: Patient
+   Uwaga: konto istnieje w bazie jako dodatkowy pacjent. Jeżeli hasło było
+   zmienione ręcznie w aplikacji, należy użyć aktualnego hasła ustawionego
+   przez użytkownika.
 
 ================================================================================
-7. ROZWIĄZYWANIE PROBLEMÓW
+6. NAJWAŻNIEJSZE FUNKCJONALNOŚCI
 ================================================================================
 
-Problem: "Cannot connect to database"
+WebAPI:
+- logowanie użytkowników
+- generowanie i walidacja tokenów JWT
+- CRUD dla użytkowników, lekarzy, pacjentów, wizyt, dokumentacji medycznej,
+  recept, leków i zwolnień lekarskich
+- zmiana danych profilu
+- dodawanie i usuwanie zdjęcia profilowego
+- zmiana hasła
+- wykrywanie anomalii medycznych
+
+BlazorServer:
+- logowanie lekarza i administratora
+- panel Home ze statystykami lekarza
+- lista i szczegóły pacjentów
+- lista i szczegóły wizyt
+- tworzenie wizyt dla zalogowanego lekarza
+- edycja terminu wizyty
+- anulowanie wizyty, także po terminie jako informacja, że pacjent nie przyszedł
+- zarządzanie profilem lekarza
+- dodawanie i usuwanie zdjęcia profilowego
+- zmiana hasła
+- panel administratora z wykresami i wykrywaniem anomalii
+
+Blazor WebAssembly:
+- logowanie pacjenta
+- rejestracja konta pacjenta
+- panel pacjenta
+- lista i szczegóły wizyt pacjenta
+- zmiana terminu wizyty
+- anulowanie wizyty
+- lista lekarzy oraz szczegóły lekarza
+- recepty pacjenta
+- edycja profilu pacjenta
+- dodawanie i usuwanie zdjęcia profilowego
+- zmiana hasła
+
+================================================================================
+7. ARCHITEKTURA ROZWIĄZANIA
+================================================================================
+
+Projekt jest podzielony zgodnie z założeniami czystej architektury:
+
+- Domain
+  Modele domenowe i interfejsy kontraktów.
+
+- Application
+  Usługi aplikacyjne, walidatory, mapowania i logika biznesowa.
+
+- Infrastructure
+  Dostęp do danych, SQLite, Entity Framework Core, repozytoria, Unit of Work
+  oraz DataSeeder.
+
+- WebAPI
+  Kontrolery REST API, autoryzacja JWT, konfiguracja logowania.
+
+- BlazorServer
+  Interfejs lekarza i administratora.
+
+- BlazorClient
+  Interfejs pacjenta w Blazor WebAssembly.
+
+- SharedKernel
+  DTO, enumy i elementy wspólne.
+
+================================================================================
+8. STRUKTURA BAZY DANYCH
+================================================================================
+
+Główne tabele w bazie:
+
+- Users
+- Doctors
+- Patients
+- Visits
+- MedicalRecords
+- Medications
+- Prescriptions
+- PrescriptionItems
+- SickLeaves
+
+Tabela Users zawiera m.in.:
+- Email
+- Password - hash PBKDF2
+- Role
+- PhotoDataUrl - zdjęcie profilowe zapisane jako data URL
+
+Aktualna baza ma 53 konta użytkowników.
+
+================================================================================
+9. ENDPOINTY WEBAPI
+================================================================================
+
+Ponieważ kontrolery używają trasy [Route("api/[controller]")], adresy są
+tworzone od nazw kontrolerów w liczbie pojedynczej.
+
+Najważniejsze endpointy:
+
+AUTH:
+- POST /api/Auth/login
+
+USER:
+- GET    /api/User
+- GET    /api/User/{id}
+- GET    /api/User/email/{email}
+- GET    /api/User/phone/{phoneNumber}
+- GET    /api/User/role/{role}
+- POST   /api/User
+- PUT    /api/User/{id}
+- PUT    /api/User/{id}/profile
+- PUT    /api/User/{id}/photo
+- PUT    /api/User/{id}/password
+- DELETE /api/User/{id}/photo
+- DELETE /api/User/{id}
+
+DOCTOR:
+- GET    /api/Doctor
+- GET    /api/Doctor/{id}
+- GET    /api/Doctor/lastname/{lastName}
+- GET    /api/Doctor/specialization/{specialization}
+- POST   /api/Doctor
+- PUT    /api/Doctor/{id}
+- DELETE /api/Doctor/{id}
+
+PATIENT:
+- GET    /api/Patient
+- GET    /api/Patient/{id}
+- GET    /api/Patient/email/{email}
+- GET    /api/Patient/pesel/{pesel}
+- GET    /api/Patient/phone/{phoneNumber}
+- POST   /api/Patient
+- PUT    /api/Patient/{id}
+- DELETE /api/Patient/{id}
+
+VISIT:
+- GET    /api/Visit
+- GET    /api/Visit/{id}
+- GET    /api/Visit/patient/{patientId}
+- GET    /api/Visit/doctor/{doctorId}
+- GET    /api/Visit/daterange
+- POST   /api/Visit
+- PUT    /api/Visit
+- POST   /api/Visit/{id}/complete
+- DELETE /api/Visit/{id}
+
+MEDICAL RECORD:
+- GET /api/MedicalRecord
+- GET /api/MedicalRecord/{id}
+- GET /api/MedicalRecord/visit/{visitId}
+- PUT /api/MedicalRecord
+
+PRESCRIPTION:
+- GET    /api/Prescription
+- GET    /api/Prescription/{id}
+- GET    /api/Prescription/medicalrecord/{medicalRecordId}
+- GET    /api/Prescription/expired
+- GET    /api/Prescription/expiring-soon
+- POST   /api/Prescription
+- PUT    /api/Prescription/{id}
+- DELETE /api/Prescription/{id}
+- POST   /api/Prescription/{prescriptionId}/items
+- GET    /api/Prescription/{prescriptionId}/items
+- GET    /api/Prescription/items/{itemId}
+- PUT    /api/Prescription/items/{itemId}
+- DELETE /api/Prescription/items/{itemId}
+
+SICK LEAVE:
+- GET    /api/SickLeave
+- GET    /api/SickLeave/{id}
+- GET    /api/SickLeave/medicalrecord/{medicalRecordId}
+- GET    /api/SickLeave/daterange
+- POST   /api/SickLeave
+- PUT    /api/SickLeave
+- DELETE /api/SickLeave/{id}
+
+MEDICATION:
+- GET  /api/Medication
+- GET  /api/Medication/{id}
+- GET  /api/Medication/name/{name}
+- GET  /api/Medication/form/{form}
+- GET  /api/Medication/strength/{strengthValue}
+- POST /api/Medication/active-ingredients
+- GET  /api/Medication/doctor/{doctorId}
+- GET  /api/Medication/patient/{patientId}
+- GET  /api/Medication/prescription/{prescriptionId}
+- POST /api/Medication/import
+- GET  /api/Medication/visit/{visitId}
+
+ANOMALY:
+- GET /api/Anomaly
+
+Swagger:
+- https://localhost:7013/swagger
+
+================================================================================
+10. LOGI SYSTEMOWE
+================================================================================
+
+Logi są skonfigurowane w projektach serwerowych:
+
+- WebAPI/nlog.config
+- BlazorServer/nlog.config
+
+Logger tworzy osobne pliki logów dla kolejnych dni oraz zapisuje błędy systemu
+w osobnych plikach niż zwykłe informacje.
+
+Typowe lokalizacje logów:
+- WebAPI/logs
+- BlazorServer/logs
+
+================================================================================
+11. ROZWIĄZYWANIE PROBLEMÓW
+================================================================================
+
+Problem: SQLite Error 11: database disk image is malformed
 Rozwiązanie:
-- Sprawdź, czy baza danych nie jest otwarta w innej aplikacji
-- Usuń folder bin/ i obj/ oraz odbuduj projekt
-- Upewnij się, że baza danych ma uprawnienia zapisu
+- plik bazy SQLite jest uszkodzony
+- należy przywrócić poprawną wersję ClinicVisitSystem.db z repozytorium
+- przed podmianą warto zrobić kopię uszkodzonego pliku
 
-Problem: Port już w użyciu
+Problem: Unable to configure HTTPS endpoint
 Rozwiązanie:
-- Zmień port w launchSettings.json
-- Lub zamknij aplikację używającą portu
+- uruchomić: dotnet dev-certs https --trust
+- następnie ponownie uruchomić Visual Studio lub terminal
 
-Problem: Błędy walidacji
+Problem: Exceeded retry count / file is locked by BlazorServer or WebAPI
 Rozwiązanie:
-- Sprawdź logi systemowe w WebAPI/logs/
+- zamknąć uruchomione procesy WebAPI, BlazorServer, BlazorClient albo dotnet
+- ponownie wykonać build
+
+Problem: Failed to fetch w Blazor WebAssembly
+Rozwiązanie:
+- najpierw uruchomić WebAPI
+- sprawdzić, czy WebAPI działa pod adresem https://localhost:7013
+- sprawdzić certyfikat HTTPS
+- sprawdzić BlazorClient/wwwroot/appsettings.json
+
+Problem: invalid email or password
+Rozwiązanie:
+- BlazorServer przyjmuje logowanie lekarza lub administratora
+- Blazor WebAssembly jest przeznaczony dla pacjenta
+- sprawdzić, czy używane konto ma odpowiednią rolę
 
 ================================================================================
-8. FLAGI FUNKCJI I KONFIGURACJA
+12. DOKUMENTACJA UŻYTKOWNIKA
 ================================================================================
 
-Plik konfiguracji: appsettings.json (lub appsettings.Development.json)
-
-Opcje:
-- DatabasePath: Ścieżka do bazy danych
-- LogLevel: Poziom logowania (Debug, Info, Warning, Error)
-- CORS: Konfiguracja Cross-Origin requests
-
-================================================================================
-9. KONTAKT I WSPARCIE
-================================================================================
-
-W razie pytań lub problemów zapoznaj się z dokumentacją użytkownika
-dołączoną do projektu:
-- DOCUMENTATION_USER_BLAZOR_SERVER.md  (dla lekarzy)
-- DOCUMENTATION_USER_BLAZOR_CLIENT.md  (dla pacjentów)
-- DOCUMENTATION_WEBAPI.md              (dla deweloperów)
+Dokumentacja użytkownika jest przygotowana osobnych plikach oraz
+zawiera opis funkcjonalności i zrzuty ekranu.
